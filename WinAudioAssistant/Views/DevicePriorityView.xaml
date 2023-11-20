@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:WinAudioAssistant"
         xmlns:viewmodels="clr-namespace:WinAudioAssistant.ViewModels"
         xmlns:converters="clr-namespace:WinAudioAssistant.Converters"
+        xmlns:gwdd="urn:gong-wpf-dragdrop"
         mc:Ignorable="d"
         Title="DevicePriorityView" Height="300" Width="600">
     <Window.DataContext>
@@ -14,11 +15,16 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:BooleanToGridLengthStarConverter x:Key="BooleanToGridLengthStarConverter"/>
+        <ContextMenu x:Key="PriorityListBoxContextMenu">
+            <MenuItem Header="Add device"/>
+            <MenuItem Header="Remove device" Command="{Binding RemoveDeviceCommand}"/>
+        </ContextMenu>
     </Window.Resources>
     <Grid x:Name="MainGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="20"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="20"/>
         </Grid.ColumnDefinitions>
@@ -27,32 +33,84 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="{Binding SeparateCommsPriority, Converter={StaticResource BooleanToGridLengthStarConverter}}"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
 
         <!-- Column 1: Output -->
         <TextBlock Grid.Column="1" Grid.Row="1" x:Name="OutputPriorityTextBlock"
                    Text="Output device priority" FontSize="18" FontWeight="Bold"/>
-        <ListBox Grid.Column="1" Grid.Row="2" x:Name="OutputPriorityListBox"/>
-        <TextBlock Grid.Column="1" Grid.Row="4" x:Name="CommsOutputPriorityTextBlock"
+        <ListBox Grid.Column="1" Grid.Row="2" x:Name="OutputPriorityListBox"
+                 gwdd:DragDrop.IsDragSource="True" gwdd:DragDrop.IsDropTarget="True"
+                 gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
+                 gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
+                 ContextMenu="{StaticResource PriorityListBoxContextMenu}" ContextMenuOpening="PriorityListBox_ContextMenuOpening"
+                 ItemsSource="{Binding OutputDevices}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Grid.Column="1" Grid.Row="3" x:Name="CommsOutputPriorityTextBlock"
                    Text="Comms output priority" FontSize="18" FontWeight="Bold"
                    Visibility="{Binding SeparateCommsPriority, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-        <ListBox Grid.Column="1" Grid.Row="5" x:Name="CommsOutputPriorityListBox"
-                 Visibility="{Binding SeparateCommsPriority, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <ListBox Grid.Column="1" Grid.Row="4" x:Name="CommsOutputPriorityListBox"
+                 Visibility="{Binding SeparateCommsPriority, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 gwdd:DragDrop.IsDragSource="True" gwdd:DragDrop.IsDropTarget="True"
+                 gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
+                 gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
+                 ContextMenu="{StaticResource PriorityListBoxContextMenu}" ContextMenuOpening="PriorityListBox_ContextMenuOpening"
+                 ItemsSource="{Binding CommsOutputDevices}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
 
-        <!-- Column 2: Input -->
-        <TextBlock Grid.Column="2" Grid.Row="1" x:Name="InputPriorityTextBlock"
+        <!-- Column 3: Input -->
+        <TextBlock Grid.Column="3" Grid.Row="1" x:Name="InputPriorityTextBlock"
                    Text="Input device priority" FontSize="18" FontWeight="Bold"/>
-        <ListBox Grid.Column="2" Grid.Row="2" x:Name="InputPriorityListBox"/>
-        <TextBlock Grid.Column="2" Grid.Row="4" x:Name="CommsInputPriorityTextBlock"
+        <ListBox Grid.Column="3" Grid.Row="2" x:Name="InputPriorityListBox"
+                 gwdd:DragDrop.IsDragSource="True" gwdd:DragDrop.IsDropTarget="True"
+                 gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
+                 gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
+                 ContextMenu="{StaticResource PriorityListBoxContextMenu}" ContextMenuOpening="PriorityListBox_ContextMenuOpening"
+                 ItemsSource="{Binding InputDevices}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Grid.Column="3" Grid.Row="3" x:Name="CommsInputPriorityTextBlock"
                    Text="Comms input priority" FontSize="18" FontWeight="Bold"
                    Visibility="{Binding SeparateCommsPriority, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-        <ListBox Grid.Column="2" Grid.Row="5" x:Name="CommsInputPriorityListBox"
-                 Visibility="{Binding SeparateCommsPriority, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <ListBox Grid.Column="3" Grid.Row="4" x:Name="CommsInputPriorityListBox"
+                 Visibility="{Binding SeparateCommsPriority, Converter={StaticResource BooleanToVisibilityConverter}}"
+                 gwdd:DragDrop.IsDragSource="True" gwdd:DragDrop.IsDropTarget="True"
+                 gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
+                 gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
+                 ContextMenu="{StaticResource PriorityListBoxContextMenu}" ContextMenuOpening="PriorityListBox_ContextMenuOpening"
+                 ItemsSource="{Binding CommsInputDevices}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
 
-        <CheckBox Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" x:Name="SeparateCommsPriorityCheckBox"
+        <CheckBox Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="5" x:Name="SeparateCommsPriorityCheckBox"
                   Content="Separate priorities for communications devices" FontSize="14"
                   IsChecked="{Binding SeparateCommsPriority, Mode=TwoWay}"
                   Checked="SeparateCommsPriorityCheckBox_Checked" Unchecked="SeparateCommsPriorityCheckBox_Unchecked"/>
