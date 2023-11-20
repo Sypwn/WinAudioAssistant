@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,18 +11,49 @@ namespace WinAudioAssistant.Models
 {
     public class DeviceManager
     {
-
+        // Internal collections of devices
+        // If separate comms priority is disabled, those references will be the same as the normal collections
         private ObservableCollection<InputDevice> _inputDevices;
         private ObservableCollection<InputDevice> _commsInputDevices;
         private ObservableCollection<OutputDevice> _outputDevices;
         private ObservableCollection<OutputDevice> _commsOutputDevices;
 
+        // Public read-only references to the internal collections
         public ReadOnlyObservableCollection<InputDevice> InputDevices { get; private set; }
         public ReadOnlyObservableCollection<InputDevice> CommsInputDevices { get; private set; }
         public ReadOnlyObservableCollection<OutputDevice> OutputDevices { get; private set; }
         public ReadOnlyObservableCollection<OutputDevice> CommsOutputDevices { get; private set;  }
 
         private bool _separateCommsPriorityState;
+
+        public bool SeparateCommsPriorityState
+        {
+            get => _separateCommsPriorityState;
+            set
+            {
+                if (_separateCommsPriorityState == value) return;
+                _separateCommsPriorityState = value;
+
+                if (value)
+                {
+                    // Copy the current devices to new lists of comms devices
+                    _commsInputDevices = new(_inputDevices);
+                    CommsInputDevices = new(_commsInputDevices);
+
+                    _commsOutputDevices = new(_outputDevices);
+                    CommsOutputDevices = new(_commsOutputDevices);
+                }
+                else
+                {
+                    // Comms devices reference the same lists as the normal devices
+                    _commsInputDevices = _inputDevices;
+                    CommsInputDevices = InputDevices;
+
+                    _commsOutputDevices = _outputDevices;
+                    CommsOutputDevices = OutputDevices;
+                }
+            }
+        }
 
         public DeviceManager()
         {
@@ -41,135 +73,99 @@ namespace WinAudioAssistant.Models
             CommsOutputDevices = OutputDevices;
         }
 
-        public bool GetSeparateCommsPriority()
+        public void AddDevice(Device device, bool isComms)
         {
-            return _separateCommsPriorityState;
-        }
-
-        public void SetSeparateCommsPriority(bool value)
-        {
-            if (_separateCommsPriorityState == value) return;
-            _separateCommsPriorityState = value;
-
-            if (value)
+            if (device is InputDevice inputDevice)
             {
-                // Copy the current devices to new lists of comms devices
-                _commsInputDevices = new(_inputDevices);
-                CommsInputDevices = new(_commsInputDevices);
-
-                _commsOutputDevices = new(_outputDevices);
-                CommsOutputDevices = new(_commsOutputDevices);
+                var collection = isComms ? _commsInputDevices : _inputDevices;
+                if (collection.Contains(inputDevice)) return;
+                collection.Add(inputDevice);
+            }
+            else if (device is OutputDevice outputDevice)
+            {
+                var collection = isComms ? _commsOutputDevices : _outputDevices;
+                if (collection.Contains(outputDevice)) return;
+                collection.Add(outputDevice);
             }
             else
             {
-                // Comms devices reference the same lists as the normal devices
-                _commsInputDevices = _inputDevices;
-                CommsInputDevices = InputDevices;
-
-                _commsOutputDevices = _outputDevices;
-                CommsOutputDevices = OutputDevices;
+                Debugger.Break();
             }
         }
 
-        public void AddDevice(Device device)
+        public void AddDeviceAt(Device device, bool isComms, int index)
         {
-            if (device is InputDevice)
+            if (device is InputDevice inputDevice)
             {
-                _inputDevices.Add((InputDevice)device);
-            }
-            else if (device is OutputDevice)
-            {
-                _outputDevices.Add((OutputDevice)device);
-            }
-        }
-
-        public void AddDeviceAt(Device device, int index)
-        {
-            if (device is InputDevice)
-            {
-                // If device is already present, move it to the new index
-                if (_inputDevices.Contains((InputDevice)device))
+                var collection = isComms ? _commsInputDevices : _inputDevices;
+                if (collection.Contains(inputDevice))
                 {
-                    _inputDevices.Move(_inputDevices.IndexOf((InputDevice)device), index);
+                    collection.Move(collection.IndexOf(inputDevice), index);
                 }
                 else
                 {
-                    _inputDevices.Insert(index, (InputDevice)device);
+                    collection.Insert(index, inputDevice);
                 }
             }
-            else if (device is OutputDevice)
+            else if (device is OutputDevice outputDevice)
             {
-                if (_outputDevices.Contains((OutputDevice)device))
+                var collection = isComms ? _commsOutputDevices : _outputDevices;
+                if (collection.Contains(outputDevice))
                 {
-                    _outputDevices.Move(_outputDevices.IndexOf((OutputDevice)device), index);
+                    collection.Move(collection.IndexOf(outputDevice), index);
                 }
                 else
                 {
-                    _outputDevices.Insert(index, (OutputDevice)device);
+                    collection.Insert(index, outputDevice);
                 }
+            }
+            else
+            {
+                Debugger.Break();
             }
         }
 
-        public void AddCommsDevice(Device device)
+
+        public void RemoveDevice(Device device, bool isComms)
         {
-            if (device is InputDevice)
+            if (device is InputDevice inputDevice)
             {
-                _commsInputDevices.Add((InputDevice)device);
+                var collection = isComms ? _commsInputDevices : _inputDevices;
+                if (collection.Contains(inputDevice))
+                {
+                    collection.Remove(inputDevice);
+                }
             }
-            else if (device is OutputDevice)
+            else if (device is OutputDevice outputDevice)
             {
-                _commsOutputDevices.Add((OutputDevice)device);
+                var collection = isComms ? _commsOutputDevices : _outputDevices;
+                if (collection.Contains(outputDevice))
+                {
+                    collection.Remove(outputDevice);
+                }
+            }
+            else
+            {
+                Debugger.Break();
             }
         }
 
-        public void AddCommsDeviceAt(Device device, int index)
+        public bool HasDevice(Device device, bool isComms)
         {
-            if (device is InputDevice)
+            if (device is InputDevice inputDevice)
             {
-                // If device is already present, move it to the new index
-                if (_commsInputDevices.Contains((InputDevice)device))
-                {
-                    _commsInputDevices.Move(_commsInputDevices.IndexOf((InputDevice)device), index);
-                }
-                else
-                {
-                    _commsInputDevices.Insert(index, (InputDevice)device);
-                }
+                var collection = isComms ? _commsInputDevices : _inputDevices;
+                return collection.Contains(inputDevice);
             }
-            else if (device is OutputDevice)
+            else if (device is OutputDevice outputDevice)
             {
-                if (_commsOutputDevices.Contains((OutputDevice)device))
-                {
-                    _commsOutputDevices.Move(_commsOutputDevices.IndexOf((OutputDevice)device), index);
-                }
-                else
-                {
-                    _commsOutputDevices.Insert(index, (OutputDevice)device);
-                }
+                var collection = isComms ? _commsOutputDevices : _outputDevices;
+                return collection.Contains(outputDevice);
             }
-        }
-
-        public void RemoveDevice(Device device)
-        {
-            if (device is InputDevice)
+            else
             {
-                _inputDevices.Remove((InputDevice)device);
-            }
-            else if (device is OutputDevice)
-            {
-                _outputDevices.Remove((OutputDevice)device);
-            }
-        }
-
-        public void RemoveCommsDevice(Device device)
-        {
-            if (device is InputDevice)
-            {
-                _commsInputDevices.Remove((InputDevice)device);
-            }
-            else if (device is OutputDevice)
-            {
-                _commsOutputDevices.Remove((OutputDevice)device);
+                Debugger.Break();
+                return false;
             }
         }
     }

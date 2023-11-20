@@ -1,4 +1,4 @@
-﻿<Window x:Class="WinAudioAssistant.DevicePriorityView"
+﻿<Window x:Class="WinAudioAssistant.Views.DevicePriorityView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -16,7 +16,8 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:BooleanToGridLengthStarConverter x:Key="BooleanToGridLengthStarConverter"/>
         <ContextMenu x:Key="PriorityListBoxContextMenu">
-            <MenuItem Header="Add device"/>
+            <MenuItem Header="Add device" Command="{Binding AddDeviceCommand}"/>
+            <MenuItem Header="Edit device" Command="{Binding EditDeviceCommand}"/>
             <MenuItem Header="Remove device" Command="{Binding RemoveDeviceCommand}"/>
         </ContextMenu>
     </Window.Resources>

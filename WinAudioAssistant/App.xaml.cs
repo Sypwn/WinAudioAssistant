@@ -15,11 +15,6 @@ namespace WinAudioAssistant
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            UserSettings.DeviceManager.AddDevice(new OutputDevice("Headphones"));
-            UserSettings.DeviceManager.AddDevice(new OutputDevice("Speakers"));
-            UserSettings.DeviceManager.AddDevice(new InputDevice("Microphone"));
-            UserSettings.DeviceManager.AddDevice(new InputDevice("Webcam"));
-            UserSettings.DeviceManager.AddDevice(new InputDevice("Line In"));
         }
     }
 

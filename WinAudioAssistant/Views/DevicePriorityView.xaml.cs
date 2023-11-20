@@ -11,10 +11,10 @@ using System.Windows.Shapes;
 using WinAudioAssistant.Models;
 using WinAudioAssistant.ViewModels;
 
-namespace WinAudioAssistant
+namespace WinAudioAssistant.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for DevicePriorityView.xaml
     /// </summary>
     public partial class DevicePriorityView : Window
     {
@@ -45,21 +45,9 @@ namespace WinAudioAssistant
             {
                 // Set ContextMenuListBox in ViewModel
                 viewModel.ContextMenuListBox = listBox;
-                // Notify RemoveDeviceCommand that its CanExecute result may have changed
+                // Notify DeviceCommands that their CanExecute result may have changed
+                viewModel.EditDeviceCommand.RaiseCanExecuteChanged();
                 viewModel.RemoveDeviceCommand.RaiseCanExecuteChanged();
-
-                /*
-                if (listBox.SelectedItem == null)
-                {
-                    // Disable the "Remove" context menu item
-                    ((MenuItem)listBox.ContextMenu.Items[1]).IsEnabled = false;
-                }
-                else
-                {
-                    // Enable the "Remove" context menu item
-                    ((MenuItem)listBox.ContextMenu.Items[1]).IsEnabled = true;
-                }
-                */
             }
         }
     }

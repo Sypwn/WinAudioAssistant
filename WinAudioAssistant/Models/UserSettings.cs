@@ -10,8 +10,8 @@ namespace WinAudioAssistant.Models
     {
         public bool SeparateCommsPriority
         {
-            get => DeviceManager.GetSeparateCommsPriority();
-            set => DeviceManager.SetSeparateCommsPriority(value);
+            get => DeviceManager.SeparateCommsPriorityState;
+            set => DeviceManager.SeparateCommsPriorityState = value;
         }
 
         public DeviceManager DeviceManager { get; } = new();

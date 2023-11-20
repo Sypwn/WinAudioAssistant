@@ -15,35 +15,20 @@ namespace WinAudioAssistant.Models
     public abstract class Device
     {
         public string Name { get; set; } = "";
-        public DeviceIOType Type { get; protected set; }
+        public abstract DeviceIOType Type();
     }
 
     public class InputDevice : Device
     {
-        public InputDevice()
-        {
-            Type = DeviceIOType.Input;
-        }
+        public InputDevice() { }
 
-        public InputDevice(string name)
-        {
-            Name = name;
-            Type = DeviceIOType.Input;
-        }
-        
+        public override DeviceIOType Type() => DeviceIOType.Input;
     }
 
     public class OutputDevice : Device
     {
-        public OutputDevice()
-        {
-            Type = DeviceIOType.Output;
-        }
+        public OutputDevice() { }
 
-        public OutputDevice(string name)
-        {
-            Name = name;
-            Type = DeviceIOType.Output;
-        }
+        public override DeviceIOType Type() => DeviceIOType.Output;
     }
 }

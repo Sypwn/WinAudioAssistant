@@ -1,16 +1,20 @@
 ﻿using GongSolutions.Wpf.DragDrop;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using WinAudioAssistant.Models;
+using WinAudioAssistant.Views;
 
 namespace WinAudioAssistant.ViewModels
 {
+    // Assigned to each ListBox in the view code-behind
     public struct ListBoxTag
     {
         public DeviceIOType Type;
@@ -34,9 +38,11 @@ namespace WinAudioAssistant.ViewModels
                 targetBox.Tag is ListBoxTag targetTag)
             {
                 // Confirm that the device I/O type matches the listbox I/O type
-                if (device.Type == targetTag.Type)
+                if (device.Type() == targetTag.Type)
                 {
+                    // Show the caret when dragging over the listbox
                     dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
+
                     // If dragging within the same listbox, we're moving
                     if (sourceBox == targetBox)
                     {
@@ -60,14 +66,8 @@ namespace WinAudioAssistant.ViewModels
                 dropInfo.VisualTarget is ListBox targetBox &&
                 targetBox.Tag is ListBoxTag targetTag)
             {
-                if (targetTag.IsComms)
-                {
-                    App.UserSettings.DeviceManager.AddCommsDeviceAt(device, dropInfo.InsertIndex == 0 ? 0 : dropInfo.InsertIndex - 1);
-                }
-                else
-                {
-                    App.UserSettings.DeviceManager.AddDeviceAt(device, dropInfo.InsertIndex == 0 ? 0 : dropInfo.InsertIndex - 1);
-                }
+                App.UserSettings.DeviceManager.AddDeviceAt(device, targetTag.IsComms,
+                    dropInfo.InsertIndex == 0 ? 0 : dropInfo.InsertIndex - 1); //Fix index off-by-one when dropping.
             }
         }
 
@@ -78,6 +78,8 @@ namespace WinAudioAssistant.ViewModels
             {
                 App.UserSettings.SeparateCommsPriority = value;
                 OnPropertyChanged(nameof(SeparateCommsPriority));
+
+                // When this is toggled, the references to the comms devices change (DeviceManager.SeparateCommsPriorityState)
                 OnPropertyChanged(nameof(CommsInputDevices));
                 OnPropertyChanged(nameof(CommsOutputDevices));
             }
@@ -88,32 +90,62 @@ namespace WinAudioAssistant.ViewModels
         public ReadOnlyObservableCollection<OutputDevice> OutputDevices => App.UserSettings.DeviceManager.OutputDevices;
         public ReadOnlyObservableCollection<OutputDevice> CommsOutputDevices => App.UserSettings.DeviceManager.CommsOutputDevices;
 
+        // Updated in the view whenever the context menu is opened
         public ListBox? ContextMenuListBox { get; set; }
 
+        public RelayCommand AddDeviceCommand { get; }
+        public RelayCommand EditDeviceCommand { get; }
         public RelayCommand RemoveDeviceCommand { get; }
 
         public DevicePriorityViewModel()
         {
+            AddDeviceCommand = new RelayCommand(AddDevice);
+            EditDeviceCommand = new RelayCommand(EditDevice, CanEditDevice);
             RemoveDeviceCommand = new RelayCommand(RemoveDevice, CanRemoveDevice);
+        }
+
+        private void AddDevice(object? parameter)
+        {
+            Debug.Assert(ContextMenuListBox?.Tag is ListBoxTag);
+            if (ContextMenuListBox?.Tag is ListBoxTag tag)
+            {
+                var editDeviceView = new EditDeviceView();
+                ((EditDeviceViewModel)editDeviceView.DataContext).Initialize(tag.Type, tag.IsComms);
+                editDeviceView.Show();
+            }
+        }
+
+        private void EditDevice(object? parameter)
+        {
+            Debug.Assert(ContextMenuListBox?.SelectedItem is Device);
+            Debug.Assert(ContextMenuListBox.Tag is ListBoxTag);
+            if (ContextMenuListBox?.SelectedItem is Device device && ContextMenuListBox.Tag is ListBoxTag tag)
+            {
+                var editDeviceView = new EditDeviceView();
+                ((EditDeviceViewModel)editDeviceView.DataContext).Initialize(device, tag.IsComms);
+                editDeviceView.Show();
+            }
+        }
+
+        private bool CanEditDevice(object? parameter)
+        {
+            Debug.Assert(ContextMenuListBox is ListBox);
+            return ContextMenuListBox?.SelectedItem is Device;
         }
 
         private void RemoveDevice(object? parameter)
         {
-            if (ContextMenuListBox?.SelectedItem is Device device)
+            Debug.Assert(ContextMenuListBox?.SelectedItem is Device);
+            Debug.Assert(ContextMenuListBox.Tag is ListBoxTag);
+            if (ContextMenuListBox?.SelectedItem is Device device && ContextMenuListBox.Tag is ListBoxTag tag)
             {
-                if (ContextMenuListBox.Tag is ListBoxTag tag && tag.IsComms)
-                {
-                    App.UserSettings.DeviceManager.RemoveCommsDevice(device);
-                }
-                else
-                {
-                    App.UserSettings.DeviceManager.RemoveDevice(device);
-                }
+                App.UserSettings.DeviceManager.RemoveDevice(device, tag.IsComms);
             }
         }
 
         private bool CanRemoveDevice(object? parameter)
         {
+            Debug.Assert(ContextMenuListBox is ListBox);
             return ContextMenuListBox?.SelectedItem is Device;
         }
 
