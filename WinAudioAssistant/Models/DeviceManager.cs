@@ -9,20 +9,23 @@ using System.Threading.Tasks;
 
 namespace WinAudioAssistant.Models
 {
+    /// <summary>
+    /// Maintains the lists of managed devices.
+    /// </summary>
     public class DeviceManager
     {
-        // Internal collections of devices
+        // Internal collections of managed devices
         // If separate comms priority is disabled, those references will be the same as the normal collections
-        private ObservableCollection<InputDevice> _inputDevices;
-        private ObservableCollection<InputDevice> _commsInputDevices;
-        private ObservableCollection<OutputDevice> _outputDevices;
-        private ObservableCollection<OutputDevice> _commsOutputDevices;
+        private ObservableCollection<ManagedInputDevice> _inputDevices;
+        private ObservableCollection<ManagedInputDevice> _commsInputDevices;
+        private ObservableCollection<ManagedOutputDevice> _outputDevices;
+        private ObservableCollection<ManagedOutputDevice> _commsOutputDevices;
 
         // Public read-only references to the internal collections
-        public ReadOnlyObservableCollection<InputDevice> InputDevices { get; private set; }
-        public ReadOnlyObservableCollection<InputDevice> CommsInputDevices { get; private set; }
-        public ReadOnlyObservableCollection<OutputDevice> OutputDevices { get; private set; }
-        public ReadOnlyObservableCollection<OutputDevice> CommsOutputDevices { get; private set;  }
+        public ReadOnlyObservableCollection<ManagedInputDevice> InputDevices { get; private set; }
+        public ReadOnlyObservableCollection<ManagedInputDevice> CommsInputDevices { get; private set; }
+        public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices { get; private set; }
+        public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices { get; private set;  }
 
         private bool _separateCommsPriorityState;
 
@@ -36,7 +39,7 @@ namespace WinAudioAssistant.Models
 
                 if (value)
                 {
-                    // Copy the current devices to new lists of comms devices
+                    // Copy the current managed devices to new lists of comms devices
                     _commsInputDevices = new(_inputDevices);
                     CommsInputDevices = new(_commsInputDevices);
 
@@ -73,15 +76,15 @@ namespace WinAudioAssistant.Models
             CommsOutputDevices = OutputDevices;
         }
 
-        public void AddDevice(Device device, bool isComms)
+        public void AddDevice(ManagedDevice device, bool isComms)
         {
-            if (device is InputDevice inputDevice)
+            if (device is ManagedInputDevice inputDevice)
             {
                 var collection = isComms ? _commsInputDevices : _inputDevices;
                 if (collection.Contains(inputDevice)) return;
                 collection.Add(inputDevice);
             }
-            else if (device is OutputDevice outputDevice)
+            else if (device is ManagedOutputDevice outputDevice)
             {
                 var collection = isComms ? _commsOutputDevices : _outputDevices;
                 if (collection.Contains(outputDevice)) return;
@@ -93,9 +96,9 @@ namespace WinAudioAssistant.Models
             }
         }
 
-        public void AddDeviceAt(Device device, bool isComms, int index)
+        public void AddDeviceAt(ManagedDevice device, bool isComms, int index)
         {
-            if (device is InputDevice inputDevice)
+            if (device is ManagedInputDevice inputDevice)
             {
                 var collection = isComms ? _commsInputDevices : _inputDevices;
                 if (collection.Contains(inputDevice))
@@ -107,7 +110,7 @@ namespace WinAudioAssistant.Models
                     collection.Insert(index, inputDevice);
                 }
             }
-            else if (device is OutputDevice outputDevice)
+            else if (device is ManagedOutputDevice outputDevice)
             {
                 var collection = isComms ? _commsOutputDevices : _outputDevices;
                 if (collection.Contains(outputDevice))
@@ -126,9 +129,9 @@ namespace WinAudioAssistant.Models
         }
 
 
-        public void RemoveDevice(Device device, bool isComms)
+        public void RemoveDevice(ManagedDevice device, bool isComms)
         {
-            if (device is InputDevice inputDevice)
+            if (device is ManagedInputDevice inputDevice)
             {
                 var collection = isComms ? _commsInputDevices : _inputDevices;
                 if (collection.Contains(inputDevice))
@@ -136,7 +139,7 @@ namespace WinAudioAssistant.Models
                     collection.Remove(inputDevice);
                 }
             }
-            else if (device is OutputDevice outputDevice)
+            else if (device is ManagedOutputDevice outputDevice)
             {
                 var collection = isComms ? _commsOutputDevices : _outputDevices;
                 if (collection.Contains(outputDevice))
@@ -150,14 +153,14 @@ namespace WinAudioAssistant.Models
             }
         }
 
-        public bool HasDevice(Device device, bool isComms)
+        public bool HasDevice(ManagedDevice device, bool isComms)
         {
-            if (device is InputDevice inputDevice)
+            if (device is ManagedInputDevice inputDevice)
             {
                 var collection = isComms ? _commsInputDevices : _inputDevices;
                 return collection.Contains(inputDevice);
             }
-            else if (device is OutputDevice outputDevice)
+            else if (device is ManagedOutputDevice outputDevice)
             {
                 var collection = isComms ? _commsOutputDevices : _outputDevices;
                 return collection.Contains(outputDevice);

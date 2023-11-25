@@ -32,7 +32,7 @@ namespace WinAudioAssistant.ViewModels
         void IDropTarget.DragOver(IDropInfo dropInfo)
         {
             // Confirm that the data is a device and the source and target are listboxes
-            if (dropInfo.Data is Device device &&
+            if (dropInfo.Data is ManagedDevice device &&
                 dropInfo.DragInfo.VisualSource is ListBox sourceBox &&
                 dropInfo.VisualTarget is ListBox targetBox &&
                 targetBox.Tag is ListBoxTag targetTag)
@@ -62,7 +62,7 @@ namespace WinAudioAssistant.ViewModels
 
         void IDropTarget.Drop(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is Device device &&
+            if (dropInfo.Data is ManagedDevice device &&
                 dropInfo.VisualTarget is ListBox targetBox &&
                 targetBox.Tag is ListBoxTag targetTag)
             {
@@ -85,10 +85,10 @@ namespace WinAudioAssistant.ViewModels
             }
         }
 
-        public ReadOnlyObservableCollection<InputDevice> InputDevices => App.UserSettings.DeviceManager.InputDevices;
-        public ReadOnlyObservableCollection<InputDevice> CommsInputDevices => App.UserSettings.DeviceManager.CommsInputDevices;
-        public ReadOnlyObservableCollection<OutputDevice> OutputDevices => App.UserSettings.DeviceManager.OutputDevices;
-        public ReadOnlyObservableCollection<OutputDevice> CommsOutputDevices => App.UserSettings.DeviceManager.CommsOutputDevices;
+        public ReadOnlyObservableCollection<ManagedInputDevice> InputDevices => App.UserSettings.DeviceManager.InputDevices;
+        public ReadOnlyObservableCollection<ManagedInputDevice> CommsInputDevices => App.UserSettings.DeviceManager.CommsInputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.DeviceManager.OutputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.DeviceManager.CommsOutputDevices;
 
         // Updated in the view whenever the context menu is opened
         public ListBox? ContextMenuListBox { get; set; }
@@ -117,9 +117,9 @@ namespace WinAudioAssistant.ViewModels
 
         private void EditDevice(object? parameter)
         {
-            Debug.Assert(ContextMenuListBox?.SelectedItem is Device);
+            Debug.Assert(ContextMenuListBox?.SelectedItem is ManagedDevice);
             Debug.Assert(ContextMenuListBox.Tag is ListBoxTag);
-            if (ContextMenuListBox?.SelectedItem is Device device && ContextMenuListBox.Tag is ListBoxTag tag)
+            if (ContextMenuListBox?.SelectedItem is ManagedDevice device && ContextMenuListBox.Tag is ListBoxTag tag)
             {
                 var editDeviceView = new EditDeviceView();
                 ((EditDeviceViewModel)editDeviceView.DataContext).Initialize(device, tag.IsComms);
@@ -130,14 +130,14 @@ namespace WinAudioAssistant.ViewModels
         private bool CanEditDevice(object? parameter)
         {
             Debug.Assert(ContextMenuListBox is ListBox);
-            return ContextMenuListBox?.SelectedItem is Device;
+            return ContextMenuListBox?.SelectedItem is ManagedDevice;
         }
 
         private void RemoveDevice(object? parameter)
         {
-            Debug.Assert(ContextMenuListBox?.SelectedItem is Device);
+            Debug.Assert(ContextMenuListBox?.SelectedItem is ManagedDevice);
             Debug.Assert(ContextMenuListBox.Tag is ListBoxTag);
-            if (ContextMenuListBox?.SelectedItem is Device device && ContextMenuListBox.Tag is ListBoxTag tag)
+            if (ContextMenuListBox?.SelectedItem is ManagedDevice device && ContextMenuListBox.Tag is ListBoxTag tag)
             {
                 App.UserSettings.DeviceManager.RemoveDevice(device, tag.IsComms);
             }
@@ -146,7 +146,7 @@ namespace WinAudioAssistant.ViewModels
         private bool CanRemoveDevice(object? parameter)
         {
             Debug.Assert(ContextMenuListBox is ListBox);
-            return ContextMenuListBox?.SelectedItem is Device;
+            return ContextMenuListBox?.SelectedItem is ManagedDevice;
         }
 
     }

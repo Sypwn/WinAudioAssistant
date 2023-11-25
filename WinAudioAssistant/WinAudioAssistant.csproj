@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="gong-wpf-dragdrop" Version="3.2.1" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
   </ItemGroup>
 
 </Project>

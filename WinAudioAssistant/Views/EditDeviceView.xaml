@@ -6,28 +6,84 @@
         xmlns:local="clr-namespace:WinAudioAssistant.Views"
         xmlns:viewmodels="clr-namespace:WinAudioAssistant.ViewModels"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}" Height="300" Width="300" MinWidth="300">
+        Title="{Binding WindowTitle}" Height="Auto" Width="320" MinWidth="320" SizeToContent="Height" MinHeight="{Binding ActualHeight, ElementName=MainGrid, Mode=OneWay}">
     <Window.DataContext>
         <viewmodels:EditDeviceViewModel/>
     </Window.DataContext>
-    <Grid Margin="10">
+    <Grid x:Name="MainGrid" Margin="5">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Name field -->
-        <DockPanel Grid.Row="0" LastChildFill="True" ToolTip="Set a custom name for this managed device.">
-            <TextBlock Text="Name:" Margin="0,0,5,0"/>
-            <TextBox Text="{Binding DeviceName}" Width="Auto" />
-        </DockPanel>
+        <!-- Row 0: Name field -->
+        <Grid Grid.Row="0" Margin="5" ToolTip="Set a custom name for this managed device.">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"  Grid.Row="0" Text="Name:" Margin="0,0,5,0"/>
+            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding DeviceName}" Width="Auto" />
+        </Grid>
 
+        <!-- Row 1: Audio endpoint selection -->
+        <Border Grid.Row ="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="3">
+            <StackPanel>
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" ToolTip="Select an audio endpoint to bind to this managed device."/>
+                    <Button x:Name="RefreshButton" Grid.Column="1" Width="{Binding ActualHeight, ElementName=RefreshButton, Mode=OneWay}" Margin="5,0,0,0" ToolTip="Refresh the list of audio endpoints."/>
+                </Grid>
+                <WrapPanel Margin="5,0,5,0">
+                    <CheckBox Grid.Column="0" Content="Active" Margin="0,0,5,5" ToolTip="Include endpoints that are fully connected and enabled."/>
+                    <CheckBox Grid.Column="1" Content="Unplugged" Margin="0,0,5,5" ToolTip="Include endpoints that are present and enabled, but reporting that the jack is unplugged."/>
+                    <CheckBox Grid.Column="2" Content="Disabled" Margin="0,0,5,5" ToolTip="Include endpoints that are present, but disabled in the control panel."/>
+                    <CheckBox Grid.Column="3" Content="Missing" Margin="0,0,0,5" ToolTip="Include endpoints that are not currently present, but have been in the past."/>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+        
+        <!-- Row 2: Endpoint identification method -->
+        <Border Grid.Row="2" Margin="0,5,0,0" BorderBrush="Gray" BorderThickness="1" CornerRadius="3">
+            <StackPanel>
+                <Grid Margin="5" ToolTip="Select the method used to identify this audio endpoint.">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Endpoint identification method:" Margin="0,0,5,0"/>
+                    <ComboBox Grid.Column="1">
+                        <ComboBoxItem Content="Strict" ToolTip="Identify this endpoint by its unique GUID. This ensures there are no identification conflicts, however its GUID may change when changing ports or sockets, updating or reinstalling drivers, etc."/>
+                        <ComboBoxItem Content="Loose" ToolTip="Identify this endpoint based on its hardware description. This allows the endpoint to continue to be detected across multiple USB ports, for example, but will create a conflict if multiple matching devices are connected."/>
+                        <ComboBoxItem Content="Custom" ToolTip="Customize the method used to identify this endpoint. (Advanced)"/>
+                    </ComboBox>
+                </Grid>
+                <WrapPanel Grid.Row="1" Grid.Column="0" Margin="5,0,5,0">
+                    <CheckBox Content="GUID" Margin="0,0,5,5" ToolTip="AudioEndpoint_GUID &#x0a;&#x0a;The unique GUID created for this specific audio endpoint."/>
+                    <CheckBox Content="Endpoint name" Margin="0,0,5,5" ToolTip="DeviceInterface_FriendlyName&#x0a;&#x0a;The device's friendly name, which can be changed in Windows Settings."/>
+                    <CheckBox Content="Driver description" Margin="0,0,5,5" ToolTip="Device_DeviceDesc&#x0a;&#x0a;The device description specified by the driver."/>
+                    <CheckBox Content="FormFactor" Margin="0,0,5,5" ToolTip="AudioEndpoint_FormFactor"/>
+                    <CheckBox Content="JackSubType" Margin="0,0,5,5" ToolTip="AudioEndpoint_JackSubType"/>
+                    <CheckBox Content="ContainerID" Margin="0,0,5,5" ToolTip="Device_ContainerId"/>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+        
+        <!-- Row 3: Activation conditions -->
+        
         <!-- Buttons -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5">
-            <Button Content="Apply" Width="75" Margin="5,0" Click="ApplyButton_Click" ToolTip="Saves changes without closing the dialog."/>
-            <Button Content="Save" Width="75" Margin="5,0" Click="SaveButton_Click" ToolTip="Saves changes and closes the dialog."/>
-            <Button Content="Cancel" Width="75" Margin="5,0" Click="CancelButton_Click" ToolTip="Closes the dialog without saving changes."/>
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+            <Button Content="Apply" Width="75" Margin="10,0,0,0" Click="ApplyButton_Click" ToolTip="Saves changes without closing the dialog."/>
+            <Button Content="Save" Width="75" Margin="10,0,0,0" Click="SaveButton_Click" ToolTip="Saves changes and closes the dialog."/>
+            <Button Content="Cancel" Width="75" Margin="10,0,0,0" Click="CancelButton_Click" ToolTip="Closes the dialog without saving changes."/>
         </StackPanel>
     </Grid>
 </Window>

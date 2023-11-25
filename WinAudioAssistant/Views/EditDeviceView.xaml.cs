@@ -33,8 +33,10 @@ namespace WinAudioAssistant.Views
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            ((EditDeviceViewModel)DataContext).Apply();
-            Close();
+            if (((EditDeviceViewModel)DataContext).Apply())
+            {
+                Close();
+            }
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

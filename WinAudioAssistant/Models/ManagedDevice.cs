@@ -12,22 +12,22 @@ namespace WinAudioAssistant.Models
         Output
     }
 
-    public abstract class Device
+    public abstract class ManagedDevice
     {
         public string Name { get; set; } = "";
         public abstract DeviceIOType Type();
     }
 
-    public class InputDevice : Device
+    public class ManagedInputDevice : ManagedDevice
     {
-        public InputDevice() { }
+        public ManagedInputDevice() { }
 
         public override DeviceIOType Type() => DeviceIOType.Input;
     }
 
-    public class OutputDevice : Device
+    public class ManagedOutputDevice : ManagedDevice
     {
-        public OutputDevice() { }
+        public ManagedOutputDevice() { }
 
         public override DeviceIOType Type() => DeviceIOType.Output;
     }
