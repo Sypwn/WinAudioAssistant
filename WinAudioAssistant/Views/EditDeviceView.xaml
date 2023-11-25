@@ -28,7 +28,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0"  Grid.Row="0" Text="Name:" Margin="0,0,5,0"/>
-            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding DeviceName}" Width="Auto" />
+            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding ManagedDeviceName}" Width="Auto" />
         </Grid>
 
         <!-- Row 1: Audio endpoint selection -->
@@ -39,14 +39,62 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0" ToolTip="Select an audio endpoint to bind to this managed device."/>
-                    <Button x:Name="RefreshButton" Grid.Column="1" Width="{Binding ActualHeight, ElementName=RefreshButton, Mode=OneWay}" Margin="5,0,0,0" ToolTip="Refresh the list of audio endpoints."/>
+                    <TextBlock Grid.Column="0" Text="Audio endpoint device:" Margin="0,0,5,0" VerticalAlignment="Bottom"/>
+                    <Button Grid.Column="1" Content="Refresh" ToolTip="Refresh the list of audio endpoints."
+                            Click="RefreshDevices_Click"/>
                 </Grid>
+                <ComboBox Margin="5,0,5,5" ToolTip="Select an audio endpoint to bind to this managed device."
+                          ItemsSource="{Binding FilteredEndpoints}" SelectedItem="{Binding ManagedDeviceEndpoint}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <!-- <Icon Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" ... -->
+                                <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Device_DeviceDesc}"/>
+                                <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding DeviceInterface_FriendlyName}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <ToolTip>
+                                        <StackPanel>
+                                            <TextBlock><Run FontWeight="Bold" Text="DataFlow: "/><Run Text="{Binding DataFlow, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="AudioEndpoint_GUID: "/><Run Text="{Binding AudioEndpoint_GUID, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="DeviceState: "/><Run Text="{Binding DeviceState, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="AudioEndpoint_FormFactor: "/><Run Text="{Binding AudioEndpoint_FormFactor, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="AudioEndpoint_JackSubType: "/><Run Text="{Binding AudioEndpoint_JackSubType, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="Device_ContainerId: "/><Run Text="{Binding Device_ContainerId, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="Device_DeviceDesc: "/><Run Text="{Binding Device_DeviceDesc, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="DeviceClass_IconPath: "/><Run Text="{Binding DeviceClass_IconPath, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="DeviceInterface_FriendlyName: "/><Run Text="{Binding DeviceInterface_FriendlyName, Mode=OneWay}"/></TextBlock>
+                                            <TextBlock><Run FontWeight="Bold" Text="HostDeviceDesc: "/><Run Text="{Binding HostDeviceDesc, Mode=OneWay}"/></TextBlock>
+                                        </StackPanel>
+                                    </ToolTip>
+
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                </ComboBox>
                 <WrapPanel Margin="5,0,5,0">
-                    <CheckBox Grid.Column="0" Content="Active" Margin="0,0,5,5" ToolTip="Include endpoints that are fully connected and enabled."/>
-                    <CheckBox Grid.Column="1" Content="Unplugged" Margin="0,0,5,5" ToolTip="Include endpoints that are present and enabled, but reporting that the jack is unplugged."/>
-                    <CheckBox Grid.Column="2" Content="Disabled" Margin="0,0,5,5" ToolTip="Include endpoints that are present, but disabled in the control panel."/>
-                    <CheckBox Grid.Column="3" Content="Missing" Margin="0,0,0,5" ToolTip="Include endpoints that are not currently present, but have been in the past."/>
+                    <CheckBox Grid.Column="0" Content="Active" Margin="0,0,5,5" ToolTip="Include endpoints that are fully connected and enabled."
+                              IsChecked="{Binding FilterActive}"/>
+                    <CheckBox Grid.Column="1" Content="Unplugged" Margin="0,0,5,5" ToolTip="Include endpoints that are present and enabled, but reporting that the jack is unplugged."
+                              IsChecked="{Binding FilterUnplugged}"/>
+                    <CheckBox Grid.Column="2" Content="Disabled" Margin="0,0,5,5" ToolTip="Include endpoints that are present, but disabled in the control panel."
+                              IsChecked="{Binding FilterDisabled}"/>
+                    <CheckBox Grid.Column="3" Content="Missing" Margin="0,0,0,5" ToolTip="Include endpoints that are not currently present, but have been in the past."
+                              IsChecked="{Binding FilterNotPresent}"/>
                 </WrapPanel>
             </StackPanel>
         </Border>
@@ -68,7 +116,7 @@
                 </Grid>
                 <WrapPanel Grid.Row="1" Grid.Column="0" Margin="5,0,5,0">
                     <CheckBox Content="GUID" Margin="0,0,5,5" ToolTip="AudioEndpoint_GUID &#x0a;&#x0a;The unique GUID created for this specific audio endpoint."/>
-                    <CheckBox Content="Endpoint name" Margin="0,0,5,5" ToolTip="DeviceInterface_FriendlyName&#x0a;&#x0a;The device's friendly name, which can be changed in Windows Settings."/>
+                    <CheckBox Content="Endpoint name" Margin="0,0,5,5" ToolTip="DeviceInterface_FriendlyName&#x0a;&#x0a;The endpoint's friendly name, which can be changed in Windows Settings."/>
                     <CheckBox Content="Driver description" Margin="0,0,5,5" ToolTip="Device_DeviceDesc&#x0a;&#x0a;The device description specified by the driver."/>
                     <CheckBox Content="FormFactor" Margin="0,0,5,5" ToolTip="AudioEndpoint_FormFactor"/>
                     <CheckBox Content="JackSubType" Margin="0,0,5,5" ToolTip="AudioEndpoint_JackSubType"/>

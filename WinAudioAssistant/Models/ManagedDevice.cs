@@ -1,34 +1,53 @@
-﻿using System;
+﻿using NAudio.CoreAudioApi;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace WinAudioAssistant.Models
 {
-    public enum DeviceIOType
-    {
-        Input,
-        Output
-    }
-
     public abstract class ManagedDevice
     {
         public string Name { get; set; } = "";
-        public abstract DeviceIOType Type();
+        public AudioEndpointInfo EndpointInfo { get; protected set; }
+
+        public abstract DataFlow DataFlow();
+        public abstract void SetEndpoint(AudioEndpointInfo endpointInfo);
     }
 
     public class ManagedInputDevice : ManagedDevice
     {
-        public ManagedInputDevice() { }
+        public ManagedInputDevice(AudioEndpointInfo endpointInfo)
+        {
+            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedInputDevice created with mismatched DataFlow");
+            EndpointInfo = endpointInfo;
+        }
 
-        public override DeviceIOType Type() => DeviceIOType.Input;
+        public override DataFlow DataFlow() => NAudio.CoreAudioApi.DataFlow.Capture;
+
+        public override void SetEndpoint(AudioEndpointInfo endpointInfo)
+        {
+            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedInputDevice endpoint set to mismatched DataFlow");
+            EndpointInfo = endpointInfo;
+        }
     }
 
     public class ManagedOutputDevice : ManagedDevice
     {
-        public ManagedOutputDevice() { }
+        public ManagedOutputDevice(AudioEndpointInfo endpointInfo)
+        {
+            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedInputDevice created with mismatched DataFlow");
+            EndpointInfo = endpointInfo;
+        }
 
-        public override DeviceIOType Type() => DeviceIOType.Output;
+        public override DataFlow DataFlow() => NAudio.CoreAudioApi.DataFlow.Render;
+
+        public override void SetEndpoint(AudioEndpointInfo endpointInfo)
+        {
+            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedInputDevice endpoint set to mismatched DataFlow");
+            EndpointInfo = endpointInfo;
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using NAudio.CoreAudioApi;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,8 @@ namespace WinAudioAssistant.Models
     /// </summary>
     public class AudioEndpointManager
     {
-        private List<AudioEndpointInfo> _cachedEndpoints { get; } = new();
-        public IReadOnlyList<AudioEndpointInfo> CachedEndpoints { get {  return _cachedEndpoints.AsReadOnly(); } }
+        private ObservableCollection<AudioEndpointInfo> _cachedEndpoints { get; } = new();
+        public ReadOnlyObservableCollection<AudioEndpointInfo> CachedEndpoints => new(_cachedEndpoints);
 
         public AudioEndpointManager()
         {

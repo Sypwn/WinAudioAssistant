@@ -25,9 +25,14 @@ namespace WinAudioAssistant.Views
             InitializeComponent();
         }
 
+        // Too lazy to make these into Commands right now.
+        private void RefreshDevices_Click(object sender, RoutedEventArgs e)
+        {
+            ((EditDeviceViewModel)DataContext).RefreshDevices();
+        }
+
         private void ApplyButton_Click(object sender, RoutedEventArgs e)
         {
-            // Too lazy to make this a Command right now.
             ((EditDeviceViewModel)DataContext).Apply();
         }
 

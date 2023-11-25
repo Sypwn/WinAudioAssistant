@@ -1,5 +1,6 @@
 ﻿using GongSolutions.Wpf.DragDrop;
 using Microsoft.VisualBasic;
+using NAudio.CoreAudioApi;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,7 +18,7 @@ namespace WinAudioAssistant.ViewModels
     // Assigned to each ListBox in the view code-behind
     public struct ListBoxTag
     {
-        public DeviceIOType Type;
+        public DataFlow DataFlow;
         public bool IsComms;
     }
 
@@ -38,7 +39,7 @@ namespace WinAudioAssistant.ViewModels
                 targetBox.Tag is ListBoxTag targetTag)
             {
                 // Confirm that the device I/O type matches the listbox I/O type
-                if (device.Type() == targetTag.Type)
+                if (device.DataFlow() == targetTag.DataFlow)
                 {
                     // Show the caret when dragging over the listbox
                     dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
@@ -110,7 +111,7 @@ namespace WinAudioAssistant.ViewModels
             if (ContextMenuListBox?.Tag is ListBoxTag tag)
             {
                 var editDeviceView = new EditDeviceView();
-                ((EditDeviceViewModel)editDeviceView.DataContext).Initialize(tag.Type, tag.IsComms);
+                ((EditDeviceViewModel)editDeviceView.DataContext).Initialize(tag.DataFlow, tag.IsComms);
                 editDeviceView.Show();
             }
         }
@@ -121,9 +122,20 @@ namespace WinAudioAssistant.ViewModels
             Debug.Assert(ContextMenuListBox.Tag is ListBoxTag);
             if (ContextMenuListBox?.SelectedItem is ManagedDevice device && ContextMenuListBox.Tag is ListBoxTag tag)
             {
-                var editDeviceView = new EditDeviceView();
-                ((EditDeviceViewModel)editDeviceView.DataContext).Initialize(device, tag.IsComms);
-                editDeviceView.Show();
+                // Check if device is already being edited, and if so focus the window.
+                foreach (var window in App.Current.Windows)
+                {
+                    if (window is EditDeviceView editDeviceView &&
+                        editDeviceView.DataContext is EditDeviceViewModel editDeviceViewModel &&
+                        editDeviceViewModel.ManagedDevice == device)
+                    {
+                        editDeviceView.Focus();
+                        return;
+                    }
+                }
+                var newEditDeviceView = new EditDeviceView();
+                ((EditDeviceViewModel)newEditDeviceView.DataContext).Initialize(device, tag.IsComms);
+                newEditDeviceView.Show();
             }
         }
 
