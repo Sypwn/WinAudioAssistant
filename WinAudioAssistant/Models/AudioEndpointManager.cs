@@ -1,5 +1,4 @@
-﻿using NAudio.CoreAudioApi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -25,8 +24,7 @@ namespace WinAudioAssistant.Models
         public void UpdateCachedEndpoints()
         {
             _cachedEndpoints.Clear();
-            var enumerator = new MMDeviceEnumerator();
-            foreach (var device in enumerator.EnumerateAudioEndPoints(DataFlow.All, DeviceState.All))
+            foreach (var device in App.CoreAudioController.GetDevices())
             {
                 _cachedEndpoints.Add(new AudioEndpointInfo(device));
             }
@@ -38,32 +36,36 @@ namespace WinAudioAssistant.Models
         public static void ListAllEndpoints()
         {
             using StreamWriter writer = new("endpoints.txt", append: false);
-            var enumerator = new MMDeviceEnumerator();
-            foreach (var device in enumerator.EnumerateAudioEndPoints(DataFlow.All, DeviceState.All))
+            foreach (var device in App.CoreAudioController.GetDevices())
             {
                 writer.WriteLine("");
                 writer.WriteLine("AudioEndpoint:");
-                writer.WriteLine($"    ID={device.ID}");
-                writer.WriteLine($"    DataFlow={device.DataFlow}");
+                writer.WriteLine($"    DeviceType={device.DeviceType}");
+                writer.WriteLine($"    FullName={device.FullName}");
+                writer.WriteLine($"    GetHashCode={device.GetHashCode()}");
+                writer.WriteLine($"    Icon={device.Icon}");
+                writer.WriteLine($"    IconPath={device.IconPath}");
+                writer.WriteLine($"    Id={device.Id}");
+                writer.WriteLine($"    InterfaceName={device.InterfaceName}");
+                writer.WriteLine($"    IsDefaultDevice={device.IsDefaultDevice}");
+                writer.WriteLine($"    IsDefaultCommunicationsDevice={device.IsDefaultCommunicationsDevice}");
+                writer.WriteLine($"    Name={device.Name}");
+                writer.WriteLine($"    RealId={device.RealId}");
                 writer.WriteLine($"    State={device.State}");
-                writer.WriteLine($"    FriendlyName={device.FriendlyName}");
-                writer.WriteLine($"    DeviceFriendlyName={device.DeviceFriendlyName}");
-                writer.WriteLine($"    InstanceID={device.InstanceId}");
-                writer.WriteLine($"    DeviceTopology.DeviceId={device.DeviceTopology.DeviceId}");
-                writer.WriteLine($"    DeviceTopology.ConnectorCount={device.DeviceTopology.ConnectorCount}");
+
                 writer.WriteLine("    Properties:");
-                for (int i = 0; i < device.Properties.Count; i++)
+                foreach (var property in device.Properties)
                 {
-                    var formatId = device.Properties[i].Key.formatId;
-                    var propertyId = device.Properties[i].Key.propertyId;
+                    var formatId = property.Key.FormatId;
+                    var propertyId = property.Key.PropertyId;
                     string valueType;
                     string? value;
                     var propertyKeyDef = PropertyKeyDefLookup.Lookup(formatId, propertyId);
 
                     try
                     {
-                        valueType = device.Properties[i].Value.GetType().ToString();
-                        value = device.Properties[i].Value.ToString();
+                        valueType = property.Value.GetType().ToString();
+                        value = property.Value.ToString();
                     }
                     catch (NotImplementedException)
                     {

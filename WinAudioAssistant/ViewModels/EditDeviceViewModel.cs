@@ -1,5 +1,4 @@
-﻿using NAudio.CoreAudioApi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -8,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using AudioSwitcher.AudioApi;
 using WinAudioAssistant.Models;
 
 namespace WinAudioAssistant.ViewModels
@@ -24,7 +24,7 @@ namespace WinAudioAssistant.ViewModels
         private bool _initialized = false;
         private ManagedDevice? _managedDevice; // Original managed device reference. Null if creating a new one
         public ManagedDevice? ManagedDevice { get => _managedDevice;}
-        public DataFlow DataFlow { get; private set; }
+        public DeviceType DataFlow { get; private set; }
         public bool IsComms { get; private set; } = false;
 
         // Managed device properties, stored here until changes are applied
@@ -111,7 +111,7 @@ namespace WinAudioAssistant.ViewModels
             _managedDevice = device;
             DataFlow = device.DataFlow();
             IsComms = isComms;
-            WindowTitle = "Edit " + (DataFlow == DataFlow.Capture ? "Input" : "Output") + (isComms ? "Comms " : "") + " Managed Device";
+            WindowTitle = "Edit " + (DataFlow == DeviceType.Capture ? "Input" : "Output") + (isComms ? "Comms " : "") + " Managed Device";
 
             ManagedDeviceName = device.Name;
             ManagedDeviceEndpoint = device.EndpointInfo;
@@ -121,14 +121,14 @@ namespace WinAudioAssistant.ViewModels
             OnPropertyChanged(string.Empty); // Refreshes all properties
         }
 
-        public void Initialize(DataFlow dataFlow, bool isComms)
+        public void Initialize(DeviceType dataFlow, bool isComms)
         {
             //Creating a new managed device
             Debug.Assert(!_initialized);
             if (_initialized) return;
             DataFlow = dataFlow;
             IsComms = isComms;
-            WindowTitle = "New " + (DataFlow == DataFlow.Capture ? "Input" : "Output") + (isComms ? "Comms " : "") + " Managed Device";
+            WindowTitle = "New " + (DataFlow == DeviceType.Capture ? "Input" : "Output") + (isComms ? "Comms " : "") + " Managed Device";
 
             _initialized = true;
             UpdateFilteredEndpoints();
@@ -185,8 +185,8 @@ namespace WinAudioAssistant.ViewModels
                 // Creating a new managed device
                 _managedDevice = DataFlow switch
                 {
-                    DataFlow.Capture => new ManagedInputDevice(ManagedDeviceEndpoint.Value),
-                    DataFlow.Render => new ManagedOutputDevice(ManagedDeviceEndpoint.Value),
+                    DeviceType.Capture => new ManagedInputDevice(ManagedDeviceEndpoint.Value),
+                    DeviceType.Playback => new ManagedOutputDevice(ManagedDeviceEndpoint.Value),
                     _ => throw new NotImplementedException()
                 };
                 _managedDevice.Name = ManagedDeviceName;

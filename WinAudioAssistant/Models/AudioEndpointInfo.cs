@@ -1,10 +1,11 @@
-﻿using NAudio.CoreAudioApi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AudioSwitcher.AudioApi;
+using AudioSwitcher.AudioApi.CoreAudio;
 
 namespace WinAudioAssistant.Models
 {
@@ -25,7 +26,7 @@ namespace WinAudioAssistant.Models
 
     public struct AudioEndpointInfo
     {
-        public readonly DataFlow DataFlow { get; }
+        public readonly DeviceType DataFlow { get; }
         public readonly Guid AudioEndpoint_GUID { get; } // Globally unique to this endpoint
         public DeviceState? DeviceState { get; private set;}
         public EndpointFormFactor? AudioEndpoint_FormFactor { get; private set; } // Speakers, headphones, headset, SPDIF, etc.
@@ -34,15 +35,15 @@ namespace WinAudioAssistant.Models
         public string? Device_DeviceDesc { get; private set; } // The endpoint's name, which can be changed in the control panel
         public string? DeviceClass_IconPath { get; private set; }
         public string? DeviceInterface_FriendlyName { get; private set; } // Set by the driver, but may have a different value if there are duplicate devices
-        public string? HostDeviceDesc { get; private set; } // (Actual property name unkown) Appears to be the name of the host device. Usually same as DeviceInterface_FriendlyName.
+        public string? HostDeviceDesc { get; private set; } // (Actual property name unkown) Appears to be the name of the host device. Usually same as DeviceInterface_FriendlyName, but more consistent.
 
-        public readonly string ID => (DataFlow == DataFlow.Render ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}";
+        public readonly string ID => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}";
 
         /// <summary>
         /// Use named arguments for optional parameters. The order of arguments may change in the future.
         /// </summary>
         /// <remarks>Test remark.</remarks>
-        public AudioEndpointInfo(DataFlow dataFlow,
+        public AudioEndpointInfo(DeviceType dataFlow,
                                  Guid audioEndpoint_GUID,
                                  EndpointFormFactor? audioEndpoint_FormFactor = null,
                                  Guid? audioEndpoint_JackSubType = null,
@@ -52,7 +53,7 @@ namespace WinAudioAssistant.Models
                                  string? deviceInterface_FriendlyName = null,
                                  string? hostDeviceDesc = null)
         {
-            Trace.Assert(dataFlow != DataFlow.All, "AudioEndpointInfo created with DataFlow.All");
+            Trace.Assert(dataFlow != DeviceType.All, "AudioEndpointInfo created with DeviceType.All");
             DataFlow = dataFlow;
             AudioEndpoint_GUID = audioEndpoint_GUID;
             AudioEndpoint_FormFactor = audioEndpoint_FormFactor;
@@ -63,18 +64,11 @@ namespace WinAudioAssistant.Models
             DeviceInterface_FriendlyName = deviceInterface_FriendlyName;
             HostDeviceDesc = hostDeviceDesc;
         }
-        public AudioEndpointInfo(MMDevice device)
+        public AudioEndpointInfo(CoreAudioDevice device)
         {
-            Trace.Assert(device.DataFlow != DataFlow.All, "AudioEndpointInfo created with DataFlow.All");
-            DataFlow = device.DataFlow;
-            if (Guid.TryParse(device.Properties[propertyKeys.AudioEndpoint_GUID]?.Value as string, out var guid))
-            {
-                AudioEndpoint_GUID = guid;
-            }
-            else
-            {
-                AudioEndpoint_GUID = Guid.Empty;
-            }
+            Trace.Assert(device.DeviceType != DeviceType.All, "AudioEndpointInfo created with DeviceType.All");
+            DataFlow = device.DeviceType;
+            AudioEndpoint_GUID = device.Id;
             Debug.Assert(AudioEndpoint_GUID != Guid.Empty, "AudioEndpointInfo created with empty GUID");
             UpdateFromDevice(device);
         }
@@ -85,8 +79,8 @@ namespace WinAudioAssistant.Models
         /// <returns>True if a matching endpoint was found in the system.</returns>
         public bool UpdateFromSystem()
         {
-            var device = new MMDeviceEnumerator().GetDevice(ID);
-            if (device?.Properties[propertyKeys.AudioEndpoint_GUID]?.Value is Guid guid && guid == AudioEndpoint_GUID)
+            var device = App.CoreAudioController.GetDevice(AudioEndpoint_GUID);
+            if (device?.Properties[propertyKeys.AudioEndpoint_GUID] is Guid guid && guid == AudioEndpoint_GUID)
             {
                 UpdateFromDevice(device);
                 return true;
@@ -97,23 +91,23 @@ namespace WinAudioAssistant.Models
             }
         }
 
-        public void UpdateFromDevice(MMDevice device)
+        public void UpdateFromDevice(CoreAudioDevice device)
         {
             DeviceState = device.State;
-            if (device.Properties[propertyKeys.AudioEndpoint_FormFactor]?.Value is uint formFactor)
+            if (device.Properties[propertyKeys.AudioEndpoint_FormFactor] is uint formFactor)
                 AudioEndpoint_FormFactor = (EndpointFormFactor)formFactor;
-            if (Guid.TryParse(device.Properties[propertyKeys.AudioEndpoint_JackSubType]?.Value as string, out var jackSubType))
+            if (Guid.TryParse(device.Properties[propertyKeys.AudioEndpoint_JackSubType] as string, out var jackSubType))
                 AudioEndpoint_JackSubType = jackSubType;
-            if (device.Properties[propertyKeys.Device_ContainerId]?.Value is Guid containerId &&
+            if (device.Properties[propertyKeys.Device_ContainerId] is Guid containerId &&
                 containerId != new Guid(0x0, 0x0, 0x0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff))
                 Device_ContainerId = containerId;
-            if (device.Properties[propertyKeys.Device_DeviceDesc]?.Value is string deviceDesc)
+            if (device.Properties[propertyKeys.Device_DeviceDesc]    is string deviceDesc)
                 Device_DeviceDesc = deviceDesc;
-            if (device.Properties[propertyKeys.DeviceClass_IconPath]?.Value is string iconPath)
+            if (device.Properties[propertyKeys.DeviceClass_IconPath] is string iconPath)
                 DeviceClass_IconPath = iconPath;
-            if (device.Properties[propertyKeys.DeviceInterface_FriendlyName]?.Value is string friendlyName)
+            if (device.Properties[propertyKeys.DeviceInterface_FriendlyName] is string friendlyName)
                 DeviceInterface_FriendlyName = friendlyName;
-            if (device.Properties[propertyKeys.Device_DeviceDesc]?.Value is string hostDeviceDesc)
+            if (device.Properties[propertyKeys.Device_DeviceDesc] is string hostDeviceDesc)
                 HostDeviceDesc = hostDeviceDesc;
         }
 

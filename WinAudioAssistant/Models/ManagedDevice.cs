@@ -1,10 +1,10 @@
-﻿using NAudio.CoreAudioApi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AudioSwitcher.AudioApi;
 
 namespace WinAudioAssistant.Models
 {
@@ -13,7 +13,7 @@ namespace WinAudioAssistant.Models
         public string Name { get; set; } = "";
         public AudioEndpointInfo EndpointInfo { get; protected set; }
 
-        public abstract DataFlow DataFlow();
+        public abstract DeviceType DataFlow();
         public abstract void SetEndpoint(AudioEndpointInfo endpointInfo);
     }
 
@@ -25,7 +25,7 @@ namespace WinAudioAssistant.Models
             EndpointInfo = endpointInfo;
         }
 
-        public override DataFlow DataFlow() => NAudio.CoreAudioApi.DataFlow.Capture;
+        public override DeviceType DataFlow() => DeviceType.Capture;
 
         public override void SetEndpoint(AudioEndpointInfo endpointInfo)
         {
@@ -42,7 +42,7 @@ namespace WinAudioAssistant.Models
             EndpointInfo = endpointInfo;
         }
 
-        public override DataFlow DataFlow() => NAudio.CoreAudioApi.DataFlow.Render;
+        public override DeviceType DataFlow() => DeviceType.Playback;
 
         public override void SetEndpoint(AudioEndpointInfo endpointInfo)
         {

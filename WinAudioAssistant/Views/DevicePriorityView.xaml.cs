@@ -1,5 +1,4 @@
-﻿using NAudio.CoreAudioApi;
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -9,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using AudioSwitcher.AudioApi;
 using WinAudioAssistant.Models;
 using WinAudioAssistant.ViewModels;
 
@@ -23,10 +23,10 @@ namespace WinAudioAssistant.Views
         public DevicePriorityView()
         {
             InitializeComponent();
-            OutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DataFlow.Render, IsComms = false };
-            CommsOutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DataFlow.Render, IsComms = true };
-            InputPriorityListBox.Tag = new ListBoxTag { DataFlow = DataFlow.Capture, IsComms = false };
-            CommsInputPriorityListBox.Tag = new ListBoxTag { DataFlow = DataFlow.Capture, IsComms = true };
+            OutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Playback, IsComms = false };
+            CommsOutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Playback, IsComms = true };
+            InputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Capture, IsComms = false };
+            CommsInputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Capture, IsComms = true };
 
         }
 

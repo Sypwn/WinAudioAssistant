@@ -10,7 +10,26 @@
 
   <ItemGroup>
     <PackageReference Include="gong-wpf-dragdrop" Version="3.2.1" />
-    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <Reference Include="AudioSwitcher.AudioApi">
+      <HintPath>.\Libs\Debug\AudioSwitcher.AudioApi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' == 'Release' ">
+    <Reference Include="AudioSwitcher.AudioApi">
+      <HintPath>.\Libs\Release\AudioSwitcher.AudioApi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <Reference Include="AudioSwitcher.AudioApi.CoreAudio">
+      <HintPath>.\Libs\Debug\AudioSwitcher.AudioApi.CoreAudio.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' == 'Release' ">
+    <Reference Include="AudioSwitcher.AudioApi.CoreAudio">
+      <HintPath>.\Libs\Release\AudioSwitcher.AudioApi.CoreAudio.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

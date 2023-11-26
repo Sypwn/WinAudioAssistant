@@ -1,7 +1,4 @@
-﻿using GongSolutions.Wpf.DragDrop;
-using Microsoft.VisualBasic;
-using NAudio.CoreAudioApi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using GongSolutions.Wpf.DragDrop;
+using AudioSwitcher.AudioApi;
 using WinAudioAssistant.Models;
 using WinAudioAssistant.Views;
 
@@ -18,7 +17,7 @@ namespace WinAudioAssistant.ViewModels
     // Assigned to each ListBox in the view code-behind
     public struct ListBoxTag
     {
-        public DataFlow DataFlow;
+        public DeviceType DataFlow;
         public bool IsComms;
     }
 
