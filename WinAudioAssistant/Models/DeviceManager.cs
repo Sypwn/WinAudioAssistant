@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AudioSwitcher.AudioApi;
+using AudioSwitcher.AudioApi.CoreAudio;
 
 namespace WinAudioAssistant.Models
 {
@@ -74,6 +76,74 @@ namespace WinAudioAssistant.Models
 
             _commsOutputDevices = _outputDevices;
             CommsOutputDevices = OutputDevices;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public void UpdateDefaultDevices()
+        {
+            bool error = false;
+            Debug.WriteLine("");
+            Debug.WriteLine("Updating default input devices:");
+            error |= !UpdateDefaultDevice(_inputDevices.ToList<ManagedDevice>(), false);
+            Debug.WriteLine("Updating default output devices:");
+            error |= !UpdateDefaultDevice(_outputDevices.ToList<ManagedDevice>(), false);
+            Debug.WriteLine("Updating default comms input devices:");
+            error |= !UpdateDefaultDevice(_commsInputDevices.ToList<ManagedDevice>(), true);
+            Debug.WriteLine("Updating default comms output devices:");
+            error |= !UpdateDefaultDevice(_commsOutputDevices.ToList<ManagedDevice>(), true);
+
+            if (error)
+                App.Current.Dispatcher.BeginInvoke(App.AudioEndpointManager.UpdateCachedEndpoints);
+        }
+
+        /// <summary>
+        /// Iterates through the list of managed devices and sets the first matching device as the default.
+        /// </summary>
+        /// <returns>False if an error occured while assigning the default device. True if no errors occured.</returns>
+        private static bool UpdateDefaultDevice(IEnumerable<ManagedDevice> managedDevices, bool isComms)
+        {
+            foreach (var managedDevice in managedDevices)
+            {
+                Debug.WriteLine($"Checking {managedDevice.Name}");
+                // If CheckShouldBeActive returns an endpointInfo, then there was a match.
+                if (managedDevice.CheckShouldBeActive() is AudioEndpointInfo endpointInfo)
+                {
+                    Debug.WriteLine($"Matched {endpointInfo.DeviceInterface_FriendlyName}");
+                    // Get the real device that matches the cached endpointInfo
+                    if (App.CoreAudioController.GetDevice(endpointInfo.AudioEndpoint_GUID) is CoreAudioDevice device)
+                    {
+                        // Check if it's already default
+                        if (isComms && device.IsDefaultCommunicationsDevice) return true;
+                        if (!isComms && device.IsDefaultDevice) return true;
+
+                        // Set as default device
+                        Debug.WriteLine("Setting as default device...");
+                        try
+                        {
+                            bool result;
+                            if (isComms) result = device.SetAsDefaultCommunications();
+                            else result = device.SetAsDefault();
+                            if (result) return true; //Succesfully set as default
+                        }
+                        catch (Exception e) when (e is ComInteropTimeoutException)
+                        {
+                            Debug.WriteLine("COM interop timeout.");
+                        }
+
+                        // Failed to set as default
+                        Debug.WriteLine("Failed to set as default device.");
+                        return false;
+                    }
+                    // Cached endpointInfo does not match a real device
+                    Debug.WriteLine($"Matching physical device not found");
+                    return false;
+                }
+                // No match or managedDevice is inactive, continue
+            }
+            // No matching devices found
+            return true;
         }
 
         public void AddDevice(ManagedDevice device, bool isComms)

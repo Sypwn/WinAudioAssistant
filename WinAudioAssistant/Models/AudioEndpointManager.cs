@@ -28,6 +28,7 @@ namespace WinAudioAssistant.Models
             {
                 _cachedEndpoints.Add(new AudioEndpointInfo(device));
             }
+            App.UserSettings.DeviceManager.UpdateDefaultDevices();
         }
 
         /// <summary>

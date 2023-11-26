@@ -15,6 +15,28 @@ namespace WinAudioAssistant.Models
 
         public abstract DeviceType DataFlow();
         public abstract void SetEndpoint(AudioEndpointInfo endpointInfo);
+
+        /// <summary>
+        /// The device checks if it should be active, and if there is a matching endpoint in the cache.
+        /// </summary>
+        /// <returns>Matching endpointInfo if it should be active, null if not.</returns>
+        public AudioEndpointInfo? CheckShouldBeActive()
+        {
+            // TODO: Activation conditions
+
+            foreach (var endpoint in App.AudioEndpointManager.CachedEndpoints)
+            {
+                if (endpoint.DeviceState != DeviceState.Active) continue;
+
+                // TODO: Additional identification methods
+                if (endpoint.AudioEndpoint_GUID == EndpointInfo.AudioEndpoint_GUID)
+                {
+                    return endpoint;
+                }
+            }
+
+            return null;
+        }
     }
 
     public class ManagedInputDevice : ManagedDevice

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="gong-wpf-dragdrop" Version="3.2.1" />
+    <PackageReference Include="System.Reactive" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
     <Reference Include="AudioSwitcher.AudioApi">
@@ -31,5 +32,4 @@
       <HintPath>.\Libs\Release\AudioSwitcher.AudioApi.CoreAudio.dll</HintPath>
     </Reference>
   </ItemGroup>
-
 </Project>
