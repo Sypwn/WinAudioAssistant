@@ -51,5 +51,23 @@ namespace WinAudioAssistant.Views
                 viewModel.RemoveDeviceCommand.RaiseCanExecuteChanged();
             }
         }
+
+        private void ApplyButton_Click(object sender, RoutedEventArgs e)
+        {
+            ((DevicePriorityViewModel)DataContext).Apply();
+        }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (((DevicePriorityViewModel)DataContext).Apply())
+            {
+                Close();
+            }
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
     }
 }

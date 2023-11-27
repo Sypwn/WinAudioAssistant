@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AudioSwitcher.AudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
+using Newtonsoft.Json;
 
 namespace WinAudioAssistant.Models
 {
@@ -36,15 +37,21 @@ namespace WinAudioAssistant.Models
         public string? DeviceClass_IconPath { get; private set; }
         public string? DeviceInterface_FriendlyName { get; private set; } // Set by the driver, but may have a different value if there are duplicate devices
         public string? HostDeviceDesc { get; private set; } // (Actual property name unkown) Appears to be the name of the host device. Usually same as DeviceInterface_FriendlyName, but more consistent.
+        // REMINDER: Add new properties to deserialization constructor and UpdateFromDevice()
 
-        public readonly string ID => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}";
+        [JsonIgnore]
+        public readonly Guid Guid => AudioEndpoint_GUID;
+        [JsonIgnore]
+        public readonly string RealId => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}";
 
         /// <summary>
+        /// Deserialization constructor.
         /// Use named arguments for optional parameters. The order of arguments may change in the future.
         /// </summary>
-        /// <remarks>Test remark.</remarks>
+        [JsonConstructor]
         public AudioEndpointInfo(DeviceType dataFlow,
                                  Guid audioEndpoint_GUID,
+                                 DeviceState? deviceState = null,
                                  EndpointFormFactor? audioEndpoint_FormFactor = null,
                                  Guid? audioEndpoint_JackSubType = null,
                                  Guid? device_ContainerId = null,
@@ -56,6 +63,7 @@ namespace WinAudioAssistant.Models
             Trace.Assert(dataFlow != DeviceType.All, "AudioEndpointInfo created with DeviceType.All");
             DataFlow = dataFlow;
             AudioEndpoint_GUID = audioEndpoint_GUID;
+            DeviceState = deviceState;
             AudioEndpoint_FormFactor = audioEndpoint_FormFactor;
             AudioEndpoint_JackSubType = audioEndpoint_JackSubType;
             Device_ContainerId = device_ContainerId;
@@ -64,6 +72,7 @@ namespace WinAudioAssistant.Models
             DeviceInterface_FriendlyName = deviceInterface_FriendlyName;
             HostDeviceDesc = hostDeviceDesc;
         }
+
         public AudioEndpointInfo(CoreAudioDevice device)
         {
             Trace.Assert(device.DeviceType != DeviceType.All, "AudioEndpointInfo created with DeviceType.All");
@@ -107,7 +116,7 @@ namespace WinAudioAssistant.Models
                 DeviceClass_IconPath = iconPath;
             if (device.Properties[propertyKeys.DeviceInterface_FriendlyName] is string friendlyName)
                 DeviceInterface_FriendlyName = friendlyName;
-            if (device.Properties[propertyKeys.Device_DeviceDesc] is string hostDeviceDesc)
+            if (device.Properties[propertyKeys.HostDeviceDesc] is string hostDeviceDesc)
                 HostDeviceDesc = hostDeviceDesc;
         }
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AudioSwitcher.AudioApi;
 
 namespace WinAudioAssistant.Models
 {
@@ -18,17 +19,17 @@ namespace WinAudioAssistant.Models
 
         public AudioEndpointManager()
         {
-            UpdateCachedEndpoints();
+            // UpdateCachedEndpoints(); // Don't, because this is constructed before UserSettings are loaded
         }
 
         public void UpdateCachedEndpoints()
         {
             _cachedEndpoints.Clear();
-            foreach (var device in App.CoreAudioController.GetDevices())
+            foreach (var device in App.CoreAudioController.GetDevices(DeviceState.All))
             {
                 _cachedEndpoints.Add(new AudioEndpointInfo(device));
             }
-            App.UserSettings.DeviceManager.UpdateDefaultDevices();
+            App.UserSettings.ManagedDevices.UpdateDefaultDevices();
         }
 
         /// <summary>
@@ -37,7 +38,7 @@ namespace WinAudioAssistant.Models
         public static void ListAllEndpoints()
         {
             using StreamWriter writer = new("endpoints.txt", append: false);
-            foreach (var device in App.CoreAudioController.GetDevices())
+            foreach (var device in App.CoreAudioController.GetDevices(DeviceState.All))
             {
                 writer.WriteLine("");
                 writer.WriteLine("AudioEndpoint:");

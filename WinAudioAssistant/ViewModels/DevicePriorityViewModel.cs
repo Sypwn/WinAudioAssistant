@@ -11,6 +11,7 @@ using GongSolutions.Wpf.DragDrop;
 using AudioSwitcher.AudioApi;
 using WinAudioAssistant.Models;
 using WinAudioAssistant.Views;
+using System.Windows;
 
 namespace WinAudioAssistant.ViewModels
 {
@@ -66,7 +67,7 @@ namespace WinAudioAssistant.ViewModels
                 dropInfo.VisualTarget is ListBox targetBox &&
                 targetBox.Tag is ListBoxTag targetTag)
             {
-                App.UserSettings.DeviceManager.AddDeviceAt(device, targetTag.IsComms,
+                App.UserSettings.ManagedDevices.AddDeviceAt(device, targetTag.IsComms,
                     dropInfo.InsertIndex == 0 ? 0 : dropInfo.InsertIndex - 1); //Fix index off-by-one when dropping.
             }
         }
@@ -76,6 +77,11 @@ namespace WinAudioAssistant.ViewModels
             get => App.UserSettings.SeparateCommsPriority;
             set
             {
+                if (value == false && App.UserSettings.ManagedDevices.CommsInputDevices.Count + App.UserSettings.ManagedDevices.CommsOutputDevices.Count > 0)
+                {
+                    MessageBoxResult messageBoxResult = MessageBox.Show("Unchecking this box will clear your managed Comms devices. Are you sure?", "Clear Managed Comms Devices", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (messageBoxResult != MessageBoxResult.Yes) return;
+                }
                 App.UserSettings.SeparateCommsPriority = value;
                 OnPropertyChanged(nameof(SeparateCommsPriority));
 
@@ -85,10 +91,10 @@ namespace WinAudioAssistant.ViewModels
             }
         }
 
-        public ReadOnlyObservableCollection<ManagedInputDevice> InputDevices => App.UserSettings.DeviceManager.InputDevices;
-        public ReadOnlyObservableCollection<ManagedInputDevice> CommsInputDevices => App.UserSettings.DeviceManager.CommsInputDevices;
-        public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.DeviceManager.OutputDevices;
-        public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.DeviceManager.CommsOutputDevices;
+        public ReadOnlyObservableCollection<ManagedInputDevice> InputDevices => App.UserSettings.ManagedDevices.InputDevices;
+        public ReadOnlyObservableCollection<ManagedInputDevice> CommsInputDevices => App.UserSettings.ManagedDevices.CommsInputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.ManagedDevices.OutputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.ManagedDevices.CommsOutputDevices;
 
         // Updated in the view whenever the context menu is opened
         public ListBox? ContextMenuListBox { get; set; }
@@ -150,7 +156,7 @@ namespace WinAudioAssistant.ViewModels
             Debug.Assert(ContextMenuListBox.Tag is ListBoxTag);
             if (ContextMenuListBox?.SelectedItem is ManagedDevice device && ContextMenuListBox.Tag is ListBoxTag tag)
             {
-                App.UserSettings.DeviceManager.RemoveDevice(device, tag.IsComms);
+                App.UserSettings.ManagedDevices.RemoveDevice(device, tag.IsComms);
             }
         }
 
@@ -160,5 +166,10 @@ namespace WinAudioAssistant.ViewModels
             return ContextMenuListBox?.SelectedItem is ManagedDevice;
         }
 
+        public bool Apply()
+        {
+            App.UserSettings.SaveToFile();
+            return true;
+        }
     }
 }

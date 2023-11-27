@@ -29,7 +29,7 @@ namespace WinAudioAssistant.Models
                 if (endpoint.DeviceState != DeviceState.Active) continue;
 
                 // TODO: Additional identification methods
-                if (endpoint.AudioEndpoint_GUID == EndpointInfo.AudioEndpoint_GUID)
+                if (endpoint.Guid == EndpointInfo.Guid)
                 {
                     return endpoint;
                 }

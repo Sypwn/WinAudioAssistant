@@ -4,17 +4,20 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using AudioSwitcher.AudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace WinAudioAssistant.Models
 {
     /// <summary>
     /// Maintains the lists of managed devices.
     /// </summary>
-    public class DeviceManager
+    public class ManagedDeviceManager
     {
         // Internal collections of managed devices
         // If separate comms priority is disabled, those references will be the same as the normal collections
@@ -60,26 +63,38 @@ namespace WinAudioAssistant.Models
             }
         }
 
-        public DeviceManager()
+        public ManagedDeviceManager(bool separateCommsPriority)
         {
-            _separateCommsPriorityState = false;
+            _separateCommsPriorityState = separateCommsPriority;
 
-            // Initially configured with separate comms priority off
             _inputDevices = new();
             InputDevices = new(_inputDevices);
 
             _outputDevices = new();
             OutputDevices = new(_outputDevices);
 
-            _commsInputDevices = _inputDevices;
-            CommsInputDevices = InputDevices;
+            if (separateCommsPriority)
+            {
+                // Separate lists for comms devices
+                _commsInputDevices = new();
+                CommsInputDevices = new(_commsInputDevices);
 
-            _commsOutputDevices = _outputDevices;
-            CommsOutputDevices = OutputDevices;
+                _commsOutputDevices = new();
+                CommsOutputDevices = new(_commsOutputDevices);
+            }
+            else
+            {
+                // Comms devices reference the same lists as the normal devices
+                _commsInputDevices = _inputDevices;
+                CommsInputDevices = InputDevices;
+
+                _commsOutputDevices = _outputDevices;
+                CommsOutputDevices = OutputDevices;
+            }
         }
         
         /// <summary>
-        /// 
+        /// Updates the default devices for all managed device lists.
         /// </summary>
         public void UpdateDefaultDevices()
         {
@@ -112,7 +127,7 @@ namespace WinAudioAssistant.Models
                 {
                     Debug.WriteLine($"Matched {endpointInfo.DeviceInterface_FriendlyName}");
                     // Get the real device that matches the cached endpointInfo
-                    if (App.CoreAudioController.GetDevice(endpointInfo.AudioEndpoint_GUID) is CoreAudioDevice device)
+                    if (App.CoreAudioController.GetDevice(endpointInfo.Guid) is CoreAudioDevice device)
                     {
                         // Check if it's already default
                         if (isComms && device.IsDefaultCommunicationsDevice) return true;
@@ -163,6 +178,14 @@ namespace WinAudioAssistant.Models
             else
             {
                 Debugger.Break();
+            }
+        }
+
+        public void AddDevices(IEnumerable<ManagedDevice> devices, bool isComms)
+        {
+            foreach (var device in devices)
+            {
+                AddDevice(device, isComms);
             }
         }
 

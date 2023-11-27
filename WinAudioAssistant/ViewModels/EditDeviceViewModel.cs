@@ -190,13 +190,13 @@ namespace WinAudioAssistant.ViewModels
                     _ => throw new NotImplementedException()
                 };
                 _managedDevice.Name = ManagedDeviceName;
-                App.UserSettings.DeviceManager.AddDevice(_managedDevice, IsComms);
+                App.UserSettings.ManagedDevices.AddDevice(_managedDevice, IsComms);
                 return true;
             }
             else
             {
                 // Editing an existing managed device
-                if (App.UserSettings.DeviceManager.HasDevice(_managedDevice, IsComms))
+                if (App.UserSettings.ManagedDevices.HasDevice(_managedDevice, IsComms))
                 {
                     _managedDevice.Name = ManagedDeviceName;
                     return true;

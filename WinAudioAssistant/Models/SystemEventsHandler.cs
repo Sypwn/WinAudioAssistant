@@ -12,7 +12,7 @@ namespace WinAudioAssistant.Models
 {
     public class SystemEventsHandler
     {
-        public SystemEventsHandler()
+        public void RegisterAllEvents()
         {
             RegisterAudioDeviceEvents();
             RegisterHardwareEvents();
@@ -20,7 +20,7 @@ namespace WinAudioAssistant.Models
         }
 
         // Audio device event handling
-        public void RegisterAudioDeviceEvents()
+        private void RegisterAudioDeviceEvents()
         {
             App.CoreAudioController.AudioDeviceChanged.Subscribe(OnDeviceChanged);
         }
@@ -43,19 +43,19 @@ namespace WinAudioAssistant.Models
                     App.Current.Dispatcher.BeginInvoke(App.AudioEndpointManager.UpdateCachedEndpoints);
                     return;
                 case DeviceChangedType.DefaultChanged:
-                    App.Current.Dispatcher.BeginInvoke(App.UserSettings.DeviceManager.UpdateDefaultDevices);
+                    App.Current.Dispatcher.BeginInvoke(App.UserSettings.ManagedDevices.UpdateDefaultDevices);
                     return;
             }
         }
 
         // Hardware event handling
-        public void RegisterHardwareEvents()
+        private void RegisterHardwareEvents()
         {
             // Set up WMI event watchers and associate with handler methods
         }
 
         // Application event handling
-        public void RegisterApplicationEvents()
+        private void RegisterApplicationEvents()
         {
             // Set up application launch/close event handling
         }
