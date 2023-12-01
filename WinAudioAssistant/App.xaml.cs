@@ -3,6 +3,7 @@ using System.Data;
 using System.Windows;
 using WinAudioAssistant.Models;
 using AudioSwitcher.AudioApi.CoreAudio;
+using WinAudioAssistant.Views;
 
 namespace WinAudioAssistant
 {
@@ -29,9 +30,9 @@ namespace WinAudioAssistant
             base.OnStartup(e);
 
             UserSettings = UserSettings.LoadAtStartup();
-
             SystemEventsHandler.RegisterAllEvents();
             AudioEndpointManager.UpdateCachedEndpoints();
+            new TrayIconView();
         }
     }
 
