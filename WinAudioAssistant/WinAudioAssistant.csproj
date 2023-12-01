@@ -9,28 +9,40 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Icons\MissingFile.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="gong-wpf-dragdrop" Version="3.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Reactive" Version="6.0.0" />
   </ItemGroup>
+
   <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
     <Reference Include="AudioSwitcher.AudioApi">
       <HintPath>.\Libs\Debug\AudioSwitcher.AudioApi.dll</HintPath>
     </Reference>
   </ItemGroup>
+
   <ItemGroup Condition=" '$(Configuration)' == 'Release' ">
     <Reference Include="AudioSwitcher.AudioApi">
       <HintPath>.\Libs\Release\AudioSwitcher.AudioApi.dll</HintPath>
     </Reference>
   </ItemGroup>
+
   <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
     <Reference Include="AudioSwitcher.AudioApi.CoreAudio">
       <HintPath>.\Libs\Debug\AudioSwitcher.AudioApi.CoreAudio.dll</HintPath>
     </Reference>
   </ItemGroup>
+
   <ItemGroup Condition=" '$(Configuration)' == 'Release' ">
     <Reference Include="AudioSwitcher.AudioApi.CoreAudio">
       <HintPath>.\Libs\Release\AudioSwitcher.AudioApi.CoreAudio.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Icons\MissingFile.ico" />
   </ItemGroup>
 </Project>

@@ -14,6 +14,8 @@ namespace WinAudioAssistant.ViewModels
 {
     public class EditDeviceViewModel : INotifyPropertyChanged
     {
+        public const int IconSize = 32;
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {

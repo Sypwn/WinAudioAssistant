@@ -56,7 +56,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <!-- <Icon Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" ... -->
+                                <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Margin="0,0,5,0"
+                                       Source="{Binding IconBitmap}"/>
                                 <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Device_DeviceDesc}"/>
                                 <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding DeviceInterface_FriendlyName}"/>
                             </Grid>
@@ -128,9 +129,9 @@
         <!-- Row 3: Activation conditions -->
         
         <!-- Buttons -->
-        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-            <Button Content="Apply" Width="75" Margin="10,0,0,0" Click="ApplyButton_Click" ToolTip="Saves changes without closing the dialog."/>
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
             <Button Content="Save" Width="75" Margin="10,0,0,0" Click="SaveButton_Click" ToolTip="Saves changes and closes the dialog."/>
+            <Button Content="Apply" Width="75" Margin="10,0,0,0" Click="ApplyButton_Click" ToolTip="Saves changes without closing the dialog."/>
             <Button Content="Cancel" Width="75" Margin="10,0,0,0" Click="CancelButton_Click" ToolTip="Closes the dialog without saving changes."/>
         </StackPanel>
     </Grid>

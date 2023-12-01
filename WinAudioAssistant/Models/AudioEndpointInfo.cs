@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using AudioSwitcher.AudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
 using Newtonsoft.Json;
@@ -43,6 +45,10 @@ namespace WinAudioAssistant.Models
         public readonly Guid Guid => AudioEndpoint_GUID;
         [JsonIgnore]
         public readonly string RealId => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}";
+        [JsonIgnore]
+        public readonly Icon Icon => App.IconManager.GetIconFromIconPath(DeviceClass_IconPath);
+        [JsonIgnore]
+        public readonly BitmapSource IconBitmap => App.IconManager.GetBitmapFromIconPath(DeviceClass_IconPath);
 
         /// <summary>
         /// Deserialization constructor.

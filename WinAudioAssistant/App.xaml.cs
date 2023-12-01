@@ -12,6 +12,7 @@ namespace WinAudioAssistant
     public partial class App : Application
     {
         public static CoreAudioController CoreAudioController { get; private set; } = new();
+        public static IconManager IconManager { get; private set; } = new();
         public static AudioEndpointManager AudioEndpointManager { get; private set; } = new();  
         public static SystemEventsHandler SystemEventsHandler { get; private set; } = new();
 #if DEBUG
@@ -22,7 +23,6 @@ namespace WinAudioAssistant
 #else
         public static UserSettings UserSettings { get; private set; } = new();
 #endif
-
 
         protected override void OnStartup(StartupEventArgs e)
         {
