@@ -12,13 +12,28 @@
     <Window.DataContext>
         <viewmodels:TrayIconViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Resources/ImageResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
         <tb:TaskbarIcon IconSource="/Resources/Icons/Icon1.ico" ToolTipText="WinAudioAssistant"
                         DoubleClickCommand="{Binding DoubleClickCommand}" >
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Settings" Command="{Binding SettingsCommand}" />
-                    <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
+                    <MenuItem Header="Settings" Command="{Binding SettingsCommand}" >
+                        <MenuItem.Icon>
+                            <StaticResource ResourceKey="Settings_Image"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Exit" Command="{Binding ExitCommand}" >
+                        <MenuItem.Icon>
+                            <StaticResource ResourceKey="Close_Image"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>

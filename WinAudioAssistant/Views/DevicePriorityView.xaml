@@ -13,13 +13,30 @@
         <viewmodels:DevicePriorityViewModel/>
     </Window.DataContext>
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:BooleanToGridLengthStarConverter x:Key="BooleanToGridLengthStarConverter"/>
-        <ContextMenu x:Key="PriorityListBoxContextMenu">
-            <MenuItem Header="Add device" Command="{Binding AddDeviceCommand}"/>
-            <MenuItem Header="Edit device" Command="{Binding EditDeviceCommand}"/>
-            <MenuItem Header="Remove device" Command="{Binding RemoveDeviceCommand}"/>
-        </ContextMenu>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Resources/ImageResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:BooleanToGridLengthStarConverter x:Key="BooleanToGridLengthStarConverter"/>
+            <ContextMenu x:Key="PriorityListBoxContextMenu">
+                <MenuItem Header="Add device" Command="{Binding AddDeviceCommand}">
+                    <MenuItem.Icon>
+                        <StaticResource ResourceKey="Add_Image"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Edit device" Command="{Binding EditDeviceCommand}">
+                    <MenuItem.Icon>
+                        <StaticResource ResourceKey="Edit_Image"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Remove device" Command="{Binding RemoveDeviceCommand}">
+                    <MenuItem.Icon>
+                        <StaticResource ResourceKey="Remove_Image"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+        </ResourceDictionary>
     </Window.Resources>
     <Grid x:Name="MainGrid">
         <Grid.ColumnDefinitions>

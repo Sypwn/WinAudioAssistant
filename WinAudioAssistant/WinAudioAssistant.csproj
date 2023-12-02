@@ -14,6 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Remove="Resources\ImageResources.xaml" />
+    <Page Remove="Resources\Images\*.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="gong-wpf-dragdrop" Version="3.2.1" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -28,5 +33,7 @@
   <ItemGroup>
     <Resource Include="Resources\Icons\Icon1.ico" />
     <Resource Include="Resources\Icons\MissingFile.ico" />
+    <Resource Include="Resources\ImageResources.xaml" />
+    <Resource Include="Resources\Images\*.xaml" />
   </ItemGroup>
 </Project>

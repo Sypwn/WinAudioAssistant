@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Images/Add.xaml" />
+        <ResourceDictionary Source="Images/Edit.xaml" />
+        <ResourceDictionary Source="Images/Remove.xaml" />
+        <ResourceDictionary Source="Images/Settings.xaml" />
+        <ResourceDictionary Source="Images/Close.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>
+<!--
+Process to prepare a .xaml image:
+1. Wrap content in ResourceDictionary
+2. Add x:Key to Viewbox
+3. Remove namespaces from Viewbox
+4. Remove nested DrawingGroups
+5. Reference in above ResourceDictionary
+-->
