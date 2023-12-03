@@ -22,14 +22,8 @@ namespace WinAudioAssistant.ViewModels
         public bool IsComms;
     }
 
-    public class DevicePriorityViewModel : INotifyPropertyChanged, IDropTarget
+    public class DevicePriorityViewModel : ViewModel, IDropTarget
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         void IDropTarget.DragOver(IDropInfo dropInfo)
         {
             // Confirm that the data is a device and the source and target are listboxes

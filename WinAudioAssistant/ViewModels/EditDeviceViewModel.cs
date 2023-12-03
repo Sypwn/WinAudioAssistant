@@ -12,15 +12,9 @@ using WinAudioAssistant.Models;
 
 namespace WinAudioAssistant.ViewModels
 {
-    public class EditDeviceViewModel : INotifyPropertyChanged
+    public class EditDeviceViewModel : ViewModel
     {
         public const int IconSize = 32;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         // Fundamental properties
         private bool _initialized = false;
