@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,31 +24,9 @@ namespace WinAudioAssistant.Views
         public EditDeviceView()
         {
             InitializeComponent();
+            Debug.Assert(DataContext is EditDeviceViewModel);
+            if (DataContext is EditDeviceViewModel viewModel)
+                viewModel.CloseViewAction = Close;
         }
-
-        // Too lazy to make these into Commands right now.
-        private void RefreshDevices_Click(object sender, RoutedEventArgs e)
-        {
-            ((EditDeviceViewModel)DataContext).RefreshDevices();
-        }
-
-        private void ApplyButton_Click(object sender, RoutedEventArgs e)
-        {
-            ((EditDeviceViewModel)DataContext).Apply();
-        }
-
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (((EditDeviceViewModel)DataContext).Apply())
-            {
-                Close();
-            }
-        }
-
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
     }
 }

@@ -92,16 +92,23 @@ namespace WinAudioAssistant.ViewModels
 
         // Updated in the view whenever the context menu is opened
         public ListBox? ContextMenuListBox { get; set; }
+        public Action CloseViewAction { get; set; } = () => { }; // Set in the view
 
         public RelayCommand AddDeviceCommand { get; }
         public RelayCommand EditDeviceCommand { get; }
         public RelayCommand RemoveDeviceCommand { get; }
+        public RelayCommand OkCommand { get; }
+        public RelayCommand CancelCommand { get; }
+        public RelayCommand ApplyCommand { get; }
 
         public DevicePriorityViewModel()
         {
             AddDeviceCommand = new RelayCommand(AddDevice);
             EditDeviceCommand = new RelayCommand(EditDevice, CanEditDevice);
             RemoveDeviceCommand = new RelayCommand(RemoveDevice, CanRemoveDevice);
+            OkCommand = new RelayCommand(Ok);
+            CancelCommand = new RelayCommand(Cancel);
+            ApplyCommand = new RelayCommand((object? p) => { Apply(p); }); // Apply() has bool return type
         }
 
         private void AddDevice(object? parameter)
@@ -160,7 +167,17 @@ namespace WinAudioAssistant.ViewModels
             return ContextMenuListBox?.SelectedItem is ManagedDevice;
         }
 
-        public bool Apply()
+        public void Ok(object? parameter)
+        {
+            if (Apply(parameter))
+                CloseViewAction();
+        }
+
+        public void Cancel(object? parameter)
+        {
+            CloseViewAction();
+        }
+        public bool Apply(object? parameter)
         {
             App.UserSettings.SaveToFile();
             return true;

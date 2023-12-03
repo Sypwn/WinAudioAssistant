@@ -136,9 +136,9 @@
  
         <!-- Buttons -->
         <StackPanel Grid.Column="1" Grid.ColumnSpan="3"  Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5,10,5,0">
-            <Button Content="Save" Width="75" Margin="10,0,0,0" Click="SaveButton_Click" ToolTip="Saves changes and closes the dialog."/>
-            <Button Content="Apply" Width="75" Margin="10,0,0,0" Click="ApplyButton_Click" ToolTip="Saves changes without closing the dialog."/>
-            <Button Content="Cancel" Width="75" Margin="10,0,0,0" Click="CancelButton_Click" ToolTip="Closes the dialog without saving changes."/>
+            <Button Content="OK" Width="75" Margin="10,0,0,0" Command="{Binding OkCommand}" ToolTip="Saves changes and closes the dialog."/>
+            <Button Content="Cancel" Width="75" Margin="10,0,0,0" Command="{Binding CancelCommand}" ToolTip="Closes the dialog without saving changes."/>
+            <Button Content="Apply" Width="75" Margin="10,0,0,0" Command="{Binding ApplyCommand}" ToolTip="Saves changes without closing the dialog."/>
         </StackPanel>
     </Grid>
 </Window>

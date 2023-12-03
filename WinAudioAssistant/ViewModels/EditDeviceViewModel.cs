@@ -16,6 +16,13 @@ namespace WinAudioAssistant.ViewModels
     {
         public const int IconSize = 32;
 
+        // ViewModel properties
+        public Action CloseViewAction { get; set; } = () => { }; // Set in the view
+        public RelayCommand RefreshDevicesCommand { get; }
+        public RelayCommand OkCommand { get; }
+        public RelayCommand CancelCommand { get; }
+        public RelayCommand ApplyCommand { get; }
+
         // Fundamental properties
         private bool _initialized = false;
         private ManagedDevice? _managedDevice; // Original managed device reference. Null if creating a new one
@@ -98,6 +105,13 @@ namespace WinAudioAssistant.ViewModels
         private ObservableCollection<AudioEndpointInfo> _filteredEndpoints = new();
         public ReadOnlyObservableCollection<AudioEndpointInfo> FilteredEndpoints => new(_filteredEndpoints);
 
+        public EditDeviceViewModel()
+        {
+            RefreshDevicesCommand = new RelayCommand(RefreshDevices);
+            OkCommand = new RelayCommand(Ok);
+            CancelCommand = new RelayCommand(Cancel);
+            ApplyCommand = new RelayCommand((object? p) => { Apply(p); }); // Apply() has bool return type
+        }
 
         public void Initialize(ManagedDevice device, bool isComms)
         {
@@ -160,13 +174,24 @@ namespace WinAudioAssistant.ViewModels
             if (_filteredEndpoints.Count > 0) ManagedDeviceEndpoint = _filteredEndpoints[0];
         }
 
-        public void RefreshDevices()
+        public void RefreshDevices(object? parameter)
         {
             App.AudioEndpointManager.UpdateCachedEndpoints();
             UpdateFilteredEndpoints();
         }
 
-        public bool Apply()
+        public void Ok(object? parameter)
+        {
+            if (Apply(parameter))
+                CloseViewAction();
+        }
+
+        public void Cancel(object? parameter)
+        {
+            CloseViewAction();
+        }
+
+        public bool Apply(object? parameter)
         {
             // Applies changes to the managed device. Returns true if successful.
             Debug.Assert(_initialized);
@@ -203,7 +228,7 @@ namespace WinAudioAssistant.ViewModels
                     if (messageBoxResult == MessageBoxResult.Yes)
                     {
                         _managedDevice = null;
-                        return Apply();
+                        return Apply(parameter);
                     }
                     else
                     {

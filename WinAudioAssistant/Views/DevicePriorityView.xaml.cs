@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -9,7 +10,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using AudioSwitcher.AudioApi;
-using WinAudioAssistant.Models;
 using WinAudioAssistant.ViewModels;
 
 namespace WinAudioAssistant.Views
@@ -19,10 +19,12 @@ namespace WinAudioAssistant.Views
     /// </summary>
     public partial class DevicePriorityView : Window
     {
-
         public DevicePriorityView()
         {
             InitializeComponent();
+            Debug.Assert(DataContext is DevicePriorityViewModel);
+            if (DataContext is DevicePriorityViewModel viewModel)
+                viewModel.CloseViewAction = Close;
             OutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Playback, IsComms = false };
             CommsOutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Playback, IsComms = true };
             InputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Capture, IsComms = false };
@@ -50,24 +52,6 @@ namespace WinAudioAssistant.Views
                 viewModel.EditDeviceCommand.RaiseCanExecuteChanged();
                 viewModel.RemoveDeviceCommand.RaiseCanExecuteChanged();
             }
-        }
-
-        private void ApplyButton_Click(object sender, RoutedEventArgs e)
-        {
-            ((DevicePriorityViewModel)DataContext).Apply();
-        }
-
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (((DevicePriorityViewModel)DataContext).Apply())
-            {
-                Close();
-            }
-        }
-
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
         }
     }
 }
