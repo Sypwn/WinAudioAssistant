@@ -64,8 +64,13 @@
                  gwdd:DragDrop.IsDragSource="True" gwdd:DragDrop.IsDropTarget="True"
                  gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
                  gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
-                 ContextMenu="{StaticResource PriorityListBoxContextMenu}" ContextMenuOpening="PriorityListBox_ContextMenuOpening"
-                 ItemsSource="{Binding OutputDevices}">
+                 ItemsSource="{Binding OutputDevices}" ContextMenu="{StaticResource PriorityListBoxContextMenu}"
+                 SelectionChanged="PriorityListBox_SelectionChanged" MouseDown="PriorityListBox_MouseDown">
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="PriorityListBoxItem_MouseDoubleClick"/>
+                </Style>
+            </ListBox.Resources>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -82,8 +87,13 @@
                  gwdd:DragDrop.IsDragSource="True" gwdd:DragDrop.IsDropTarget="True"
                  gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
                  gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
-                 ContextMenu="{StaticResource PriorityListBoxContextMenu}" ContextMenuOpening="PriorityListBox_ContextMenuOpening"
-                 ItemsSource="{Binding CommsOutputDevices}">
+                 ItemsSource="{Binding CommsOutputDevices}" ContextMenu="{StaticResource PriorityListBoxContextMenu}"
+                 SelectionChanged="PriorityListBox_SelectionChanged" MouseDown="PriorityListBox_MouseDown">
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="PriorityListBoxItem_MouseDoubleClick"/>
+                </Style>
+            </ListBox.Resources>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -100,8 +110,13 @@
                  gwdd:DragDrop.IsDragSource="True" gwdd:DragDrop.IsDropTarget="True"
                  gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
                  gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
-                 ContextMenu="{StaticResource PriorityListBoxContextMenu}" ContextMenuOpening="PriorityListBox_ContextMenuOpening"
-                 ItemsSource="{Binding InputDevices}">
+                 ItemsSource="{Binding InputDevices}" ContextMenu="{StaticResource PriorityListBoxContextMenu}"
+                 SelectionChanged="PriorityListBox_SelectionChanged" MouseDown="PriorityListBox_MouseDown">
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="PriorityListBoxItem_MouseDoubleClick"/>
+                </Style>
+            </ListBox.Resources>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -118,8 +133,13 @@
                  gwdd:DragDrop.IsDragSource="True" gwdd:DragDrop.IsDropTarget="True"
                  gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
                  gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
-                 ContextMenu="{StaticResource PriorityListBoxContextMenu}" ContextMenuOpening="PriorityListBox_ContextMenuOpening"
-                 ItemsSource="{Binding CommsInputDevices}">
+                 ItemsSource="{Binding CommsInputDevices}" ContextMenu="{StaticResource PriorityListBoxContextMenu}"
+                 SelectionChanged="PriorityListBox_SelectionChanged" MouseDown="PriorityListBox_MouseDown">
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="PriorityListBoxItem_MouseDoubleClick"/>
+                </Style>
+            </ListBox.Resources>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">

@@ -6,12 +6,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using GongSolutions.Wpf.DragDrop;
 using AudioSwitcher.AudioApi;
 using WinAudioAssistant.Models;
 using WinAudioAssistant.Views;
-using System.Windows;
 
 namespace WinAudioAssistant.ViewModels
 {
@@ -91,7 +91,7 @@ namespace WinAudioAssistant.ViewModels
         public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.ManagedDevices.CommsOutputDevices;
 
         // Updated in the view whenever the context menu is opened
-        public ListBox? ContextMenuListBox { get; set; }
+        public ListBox? ActiveListBox { get; set; } // Tracks which ListBox was most recently interacted with
         public Action CloseViewAction { get; set; } = () => { }; // Set in the view
 
         public RelayCommand AddDeviceCommand { get; }
@@ -113,8 +113,8 @@ namespace WinAudioAssistant.ViewModels
 
         private void AddDevice(object? parameter)
         {
-            Debug.Assert(ContextMenuListBox?.Tag is ListBoxTag);
-            if (ContextMenuListBox?.Tag is ListBoxTag tag)
+            Debug.Assert(ActiveListBox?.Tag is ListBoxTag);
+            if (ActiveListBox?.Tag is ListBoxTag tag)
             {
                 var editDeviceView = new EditDeviceView();
                 ((EditDeviceViewModel)editDeviceView.DataContext).Initialize(tag.DataFlow, tag.IsComms);
@@ -124,9 +124,9 @@ namespace WinAudioAssistant.ViewModels
 
         private void EditDevice(object? parameter)
         {
-            Debug.Assert(ContextMenuListBox?.SelectedItem is ManagedDevice);
-            Debug.Assert(ContextMenuListBox.Tag is ListBoxTag);
-            if (ContextMenuListBox?.SelectedItem is ManagedDevice device && ContextMenuListBox.Tag is ListBoxTag tag)
+            Debug.Assert(ActiveListBox?.SelectedItem is ManagedDevice);
+            Debug.Assert(ActiveListBox.Tag is ListBoxTag);
+            if (ActiveListBox?.SelectedItem is ManagedDevice device && ActiveListBox.Tag is ListBoxTag tag)
             {
                 // Check if device is already being edited, and if so focus the window.
                 foreach (var window in App.Current.Windows)
@@ -147,15 +147,15 @@ namespace WinAudioAssistant.ViewModels
 
         private bool CanEditDevice(object? parameter)
         {
-            Debug.Assert(ContextMenuListBox is ListBox);
-            return ContextMenuListBox?.SelectedItem is ManagedDevice;
+            Debug.Assert(ActiveListBox is ListBox);
+            return ActiveListBox?.SelectedItem is ManagedDevice;
         }
 
         private void RemoveDevice(object? parameter)
         {
-            Debug.Assert(ContextMenuListBox?.SelectedItem is ManagedDevice);
-            Debug.Assert(ContextMenuListBox.Tag is ListBoxTag);
-            if (ContextMenuListBox?.SelectedItem is ManagedDevice device && ContextMenuListBox.Tag is ListBoxTag tag)
+            Debug.Assert(ActiveListBox?.SelectedItem is ManagedDevice);
+            Debug.Assert(ActiveListBox.Tag is ListBoxTag);
+            if (ActiveListBox?.SelectedItem is ManagedDevice device && ActiveListBox.Tag is ListBoxTag tag)
             {
                 App.UserSettings.ManagedDevices.RemoveDevice(device, tag.IsComms);
             }
@@ -163,8 +163,8 @@ namespace WinAudioAssistant.ViewModels
 
         private bool CanRemoveDevice(object? parameter)
         {
-            Debug.Assert(ContextMenuListBox is ListBox);
-            return ContextMenuListBox?.SelectedItem is ManagedDevice;
+            Debug.Assert(ActiveListBox is ListBox);
+            return ActiveListBox?.SelectedItem is ManagedDevice;
         }
 
         public void Ok(object? parameter)
@@ -177,10 +177,25 @@ namespace WinAudioAssistant.ViewModels
         {
             CloseViewAction();
         }
+
         public bool Apply(object? parameter)
         {
             App.UserSettings.SaveToFile();
             return true;
+        }
+
+        public void PriorityListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // We can't move this to the setter of a single one-way bound SelectedItem property because we need to know which ListBox it's in
+            // We could instead create 4 separate SelectedItem properties, but that's a lot of code duplication
+            Debug.Assert(sender is ListBox);
+            if (sender is ListBox listBox)
+            {
+                ActiveListBox = listBox;
+                // Notify DeviceCommands that their CanExecute result may have changed
+                EditDeviceCommand.RaiseCanExecuteChanged();
+                RemoveDeviceCommand.RaiseCanExecuteChanged();
+            }
         }
     }
 }

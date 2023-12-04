@@ -8,12 +8,11 @@ using WinAudioAssistant.Views;
 
 namespace WinAudioAssistant.ViewModels
 {
-    class TrayIconViewModel
+    class TrayIconViewModel : ViewModel
     {
-
-        public ICommand DoubleClickCommand { get; }
-        public ICommand SettingsCommand { get; }
-        public ICommand ExitCommand { get; }
+        public RelayCommand DoubleClickCommand { get; }
+        public RelayCommand SettingsCommand { get; }
+        public RelayCommand ExitCommand { get; }
 
         public TrayIconViewModel()
         {
