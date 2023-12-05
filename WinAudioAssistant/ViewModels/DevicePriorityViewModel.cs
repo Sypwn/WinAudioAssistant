@@ -147,7 +147,6 @@ namespace WinAudioAssistant.ViewModels
 
         private bool CanEditDevice(object? parameter)
         {
-            Debug.Assert(ActiveListBox is ListBox);
             return ActiveListBox?.SelectedItem is ManagedDevice;
         }
 
@@ -163,7 +162,6 @@ namespace WinAudioAssistant.ViewModels
 
         private bool CanRemoveDevice(object? parameter)
         {
-            Debug.Assert(ActiveListBox is ListBox);
             return ActiveListBox?.SelectedItem is ManagedDevice;
         }
 
@@ -188,6 +186,18 @@ namespace WinAudioAssistant.ViewModels
         {
             // We can't move this to the setter of a single one-way bound SelectedItem property because we need to know which ListBox it's in
             // We could instead create 4 separate SelectedItem properties, but that's a lot of code duplication
+            Debug.Assert(sender is ListBox);
+            if (sender is ListBox listBox)
+            {
+                ActiveListBox = listBox;
+                // Notify DeviceCommands that their CanExecute result may have changed
+                EditDeviceCommand.RaiseCanExecuteChanged();
+                RemoveDeviceCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public void PriorityListBox_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
             Debug.Assert(sender is ListBox);
             if (sender is ListBox listBox)
             {

@@ -69,5 +69,12 @@ namespace WinAudioAssistant.Views
             if (DataContext is DevicePriorityViewModel viewModel && viewModel.EditDeviceCommand.CanExecute(null))
                 viewModel.EditDeviceCommand.Execute(null);
         }
+
+        private void PriorityListBox_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            Debug.Assert(DataContext is DevicePriorityViewModel);
+            if (DataContext is DevicePriorityViewModel viewModel)
+                viewModel.PriorityListBox_ContextMenuOpening(sender, e);
+        }
     }
 }

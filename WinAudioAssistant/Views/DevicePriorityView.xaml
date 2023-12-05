@@ -65,6 +65,7 @@
                  gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
                  gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
                  ItemsSource="{Binding OutputDevices}" ContextMenu="{StaticResource PriorityListBoxContextMenu}"
+                 ContextMenuOpening="PriorityListBox_ContextMenuOpening"
                  SelectionChanged="PriorityListBox_SelectionChanged" MouseDown="PriorityListBox_MouseDown">
             <ListBox.Resources>
                 <Style TargetType="ListBoxItem">
@@ -88,6 +89,7 @@
                  gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
                  gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
                  ItemsSource="{Binding CommsOutputDevices}" ContextMenu="{StaticResource PriorityListBoxContextMenu}"
+                 ContextMenuOpening="PriorityListBox_ContextMenuOpening"
                  SelectionChanged="PriorityListBox_SelectionChanged" MouseDown="PriorityListBox_MouseDown">
             <ListBox.Resources>
                 <Style TargetType="ListBoxItem">
@@ -111,6 +113,7 @@
                  gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
                  gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
                  ItemsSource="{Binding InputDevices}" ContextMenu="{StaticResource PriorityListBoxContextMenu}"
+                 ContextMenuOpening="PriorityListBox_ContextMenuOpening"
                  SelectionChanged="PriorityListBox_SelectionChanged" MouseDown="PriorityListBox_MouseDown">
             <ListBox.Resources>
                 <Style TargetType="ListBoxItem">
@@ -134,6 +137,7 @@
                  gwdd:DragDrop.UseDefaultDragAdorner="True" gwdd:DragDrop.UseDefaultEffectDataTemplate="True"
                  gwdd:DragDrop.DragHandler="{Binding}" gwdd:DragDrop.DropHandler="{Binding}"
                  ItemsSource="{Binding CommsInputDevices}" ContextMenu="{StaticResource PriorityListBoxContextMenu}"
+                 ContextMenuOpening="PriorityListBox_ContextMenuOpening"
                  SelectionChanged="PriorityListBox_SelectionChanged" MouseDown="PriorityListBox_MouseDown">
             <ListBox.Resources>
                 <Style TargetType="ListBoxItem">
