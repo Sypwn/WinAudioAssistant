@@ -14,99 +14,87 @@ namespace WinAudioAssistant.ViewModels
 {
     public class EditDeviceViewModel : ViewModel
     {
+        public struct DeviceIdentificationMethodOption
+        {
+            public string Name { get; set; }
+            public ManagedDevice.IdentificationMethods Value { get; set; }
+            public string ToolTip { get; set; }
+        }
         public const int IconSize = 32;
 
-        // ViewModel properties
+        // === ViewModel properties ===
         public Action CloseViewAction { get; set; } = () => { }; // Set in the view
         public RelayCommand RefreshDevicesCommand { get; }
         public RelayCommand OkCommand { get; }
         public RelayCommand CancelCommand { get; }
         public RelayCommand ApplyCommand { get; }
 
-        // Fundamental properties
+        // === Fundamental fields and properties ===
         private bool _initialized = false;
         private ManagedDevice? _managedDevice; // Original managed device reference. Null if creating a new one
         public ManagedDevice? ManagedDevice { get => _managedDevice;}
         public DeviceType DataFlow { get; private set; }
         public bool IsComms { get; private set; } = false;
 
-        // Managed device properties, stored here until changes are applied
+        // === Managed device fields ===
+        // Stored here until changes are applied
         private string _managedDeviceName = string.Empty;
+        private AudioEndpointInfo? _managedDeviceEndpointInfo = null;
+        private ManagedDevice.IdentificationMethods _managedDeviceIentificationMethod = ManagedDevice.IdentificationMethods.Loose;
+        private EnumFlags<ManagedDevice.IdentificationFlags> _managedDeviceCustomIdentificationFlags = new(ManagedDevice.IdentificationFlags.Loose);
+
+        // === UI bound properties ===
+        public string WindowTitle { get; private set; } = "EditDeviceView";
+        // The name starts empty, but is set to the endpoint's name when one is selected, until a custom name is provided.
         private bool _managedDeviceNameChanged = false;
         public string ManagedDeviceName
-        { 
-            get => _managedDeviceName;
-            set { _managedDeviceName = value; _managedDeviceNameChanged = true; OnPropertyChanged(nameof(ManagedDeviceName));}
-        }
-        private AudioEndpointInfo? _managedDeviceEndpoint = null;
-        public AudioEndpointInfo? ManagedDeviceEndpoint
         {
-            get => _managedDeviceEndpoint;
-            set {
-                _managedDeviceEndpoint = value;
+            get => _managedDeviceName;
+            set
+            {
+                _managedDeviceName = value;
+                _managedDeviceNameChanged = true;
+                OnPropertyChanged(nameof(ManagedDeviceName));
+            }
+        }
+        public AudioEndpointInfo? ManagedDeviceEndpointInfo
+        {
+            get => _managedDeviceEndpointInfo;
+            set
+            {
+                _managedDeviceEndpointInfo = value;
                 if (!_managedDeviceNameChanged)
                 {
                     _managedDeviceName = value?.Device_DeviceDesc ?? string.Empty;
                     OnPropertyChanged(nameof(ManagedDeviceName));
                 }
-                OnPropertyChanged(nameof(ManagedDeviceEndpoint));
+                OnPropertyChanged(nameof(ManagedDeviceEndpointInfo));
             }
         }
-
-        // UI bound properties
-        public string WindowTitle { get; private set; } = "EditDeviceView";
-        private DeviceState _endpointStateFilter = DeviceState.Active;
-
-        public bool FilterActive
-        {
-            get => (_endpointStateFilter & DeviceState.Active) == DeviceState.Active;
-            set
-            {
-                if (value) _endpointStateFilter |= DeviceState.Active;
-                else _endpointStateFilter &= ~DeviceState.Active;
-                OnPropertyChanged(nameof(FilterActive));
-                UpdateFilteredEndpoints();
-            }
-        }
-        public bool FilterDisabled
-        {
-            get => (_endpointStateFilter & DeviceState.Disabled) == DeviceState.Disabled;
-            set
-            {
-                if (value) _endpointStateFilter |= DeviceState.Disabled;
-                else _endpointStateFilter &= ~DeviceState.Disabled;
-                OnPropertyChanged(nameof(FilterDisabled));
-                UpdateFilteredEndpoints();
-            }
-        }
-        public bool FilterNotPresent
-        {
-            get => (_endpointStateFilter & DeviceState.NotPresent) == DeviceState.NotPresent;
-            set
-            {
-                if (value) _endpointStateFilter |= DeviceState.NotPresent;
-                else _endpointStateFilter &= ~DeviceState.NotPresent;
-                OnPropertyChanged(nameof(FilterNotPresent));
-                UpdateFilteredEndpoints();
-            }
-        }
-        public bool FilterUnplugged
-        {
-            get => (_endpointStateFilter & DeviceState.Unplugged) == DeviceState.Unplugged;
-            set
-            {
-                if (value) _endpointStateFilter |= DeviceState.Unplugged;
-                else _endpointStateFilter &= ~DeviceState.Unplugged;
-                OnPropertyChanged(nameof(FilterUnplugged));
-                UpdateFilteredEndpoints();
-            }
-        }
+        public EnumFlags<DeviceState> EndpointListFilter { get; } = new(DeviceState.Active);
 
         private ObservableCollection<AudioEndpointInfo> _filteredEndpoints = new();
         public ReadOnlyObservableCollection<AudioEndpointInfo> FilteredEndpoints => new(_filteredEndpoints);
+        public ObservableCollection<DeviceIdentificationMethodOption> ManagedDeviceIdentificationMethods { get; } = new(); // Populated in the view
+        public DeviceIdentificationMethodOption ManagedDeviceIdentificationMethod
+        {
+            get => ManagedDeviceIdentificationMethods.FirstOrDefault(item => item.Value == _managedDeviceIentificationMethod);
+            set
+            {
+                _managedDeviceIentificationMethod = value.Value;
+                OnPropertyChanged(nameof(ManagedDeviceIdentificationMethod));
+                OnPropertyChanged(nameof(ShowCustomIdentificationFlags));
+            }
+        }
+        public EnumFlags<ManagedDevice.IdentificationFlags> ManagedDeviceCustomIdentificationFlags { get => _managedDeviceCustomIdentificationFlags; }
+        public bool ShowCustomIdentificationFlags => _managedDeviceIentificationMethod == ManagedDevice.IdentificationMethods.Custom;
+        public ManagedDevice.IdentificationFlags AvailableCustomIdentificationFlags = ManagedDevice.IdentificationFlags.None; // Set by the View
 
         public EditDeviceViewModel()
         {
+            // When an endpoint list filter checkbox is toggled, update the filtered list of endpoints
+            EndpointListFilter.PropertyChanged += (_, _) => UpdateFilteredEndpoints();
+
             RefreshDevicesCommand = new RelayCommand(RefreshDevices);
             OkCommand = new RelayCommand(Ok);
             CancelCommand = new RelayCommand(Cancel);
@@ -123,8 +111,10 @@ namespace WinAudioAssistant.ViewModels
             IsComms = isComms;
             WindowTitle = "Edit " + (DataFlow == DeviceType.Capture ? "Input" : "Output") + (isComms ? "Comms " : "") + " Managed Device";
 
-            ManagedDeviceName = device.Name;
-            ManagedDeviceEndpoint = device.EndpointInfo;
+            _managedDeviceName = device.Name;
+            _managedDeviceEndpointInfo = device.EndpointInfo;
+            _managedDeviceIentificationMethod = device.IdentificationMethod;
+            _managedDeviceCustomIdentificationFlags.Value = device.CustomIdentificationFlags & AvailableCustomIdentificationFlags; // Mask out any flags that are not available to be set
 
             _initialized = true;
             UpdateFilteredEndpoints();
@@ -151,15 +141,15 @@ namespace WinAudioAssistant.ViewModels
 
             // Generate a new filtered list of endpoints
             var filtered = App.AudioEndpointManager.CachedEndpoints
-                .Where(item => (item.DataFlow == DataFlow) && (item.DeviceState & _endpointStateFilter) != 0)
+                .Where(item => (item.DataFlow == DataFlow) && (item.DeviceState & EndpointListFilter.Value) != 0)
                 .ToList();
 
             // These three steps must be performed in this order, or else things break.
             // Step 1: Put the currently selected endpoint at the top of the list, moving it if it already exists
-            if (_managedDeviceEndpoint != null)
+            if (_managedDeviceEndpointInfo != null)
             {
-                filtered.Remove(_managedDeviceEndpoint.Value);
-                filtered.Insert(0, _managedDeviceEndpoint.Value);
+                filtered.Remove(_managedDeviceEndpointInfo.Value);
+                filtered.Insert(0, _managedDeviceEndpointInfo.Value);
             }
 
             // Step 2: Update the filtered list with the new contents
@@ -171,7 +161,7 @@ namespace WinAudioAssistant.ViewModels
 
             // Step 3: Re-select the endpoint.
             // Even if there was no previous selection, this will select the first item in the list.
-            if (_filteredEndpoints.Count > 0) ManagedDeviceEndpoint = _filteredEndpoints[0];
+            if (_filteredEndpoints.Count > 0) ManagedDeviceEndpointInfo = _filteredEndpoints[0];
         }
 
         public void RefreshDevices(object? parameter)
@@ -196,7 +186,7 @@ namespace WinAudioAssistant.ViewModels
             // Applies changes to the managed device. Returns true if successful.
             Debug.Assert(_initialized);
             if (_initialized == false) return false;
-            if (ManagedDeviceEndpoint is null)
+            if (_managedDeviceEndpointInfo is null)
             {
                 MessageBox.Show("Please select an audio endpoint.", "No Endpoint Selected", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
@@ -206,11 +196,13 @@ namespace WinAudioAssistant.ViewModels
                 // Creating a new managed device
                 _managedDevice = DataFlow switch
                 {
-                    DeviceType.Capture => new ManagedInputDevice(ManagedDeviceEndpoint.Value),
-                    DeviceType.Playback => new ManagedOutputDevice(ManagedDeviceEndpoint.Value),
+                    DeviceType.Capture => new ManagedInputDevice(_managedDeviceEndpointInfo.Value),
+                    DeviceType.Playback => new ManagedOutputDevice(_managedDeviceEndpointInfo.Value),
                     _ => throw new NotImplementedException()
                 };
                 _managedDevice.Name = ManagedDeviceName;
+                _managedDevice.IdentificationMethod = _managedDeviceIentificationMethod;
+                _managedDevice.CustomIdentificationFlags = _managedDeviceCustomIdentificationFlags.Value & AvailableCustomIdentificationFlags;
                 App.UserSettings.ManagedDevices.AddDevice(_managedDevice, IsComms);
                 return true;
             }
@@ -220,6 +212,9 @@ namespace WinAudioAssistant.ViewModels
                 if (App.UserSettings.ManagedDevices.HasDevice(_managedDevice, IsComms))
                 {
                     _managedDevice.Name = ManagedDeviceName;
+                    _managedDevice.SetEndpoint(_managedDeviceEndpointInfo.Value);
+                    _managedDevice.IdentificationMethod = _managedDeviceIentificationMethod;
+                    _managedDevice.CustomIdentificationFlags = _managedDeviceCustomIdentificationFlags.Value & AvailableCustomIdentificationFlags;
                     return true;
                 }
                 else

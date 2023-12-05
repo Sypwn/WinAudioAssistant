@@ -31,6 +31,7 @@ namespace WinAudioAssistant.Models
     {
         public readonly DeviceType DataFlow { get; }
         public readonly Guid AudioEndpoint_GUID { get; } // Globally unique to this endpoint
+        [JsonIgnore]
         public DeviceState? DeviceState { get; private set;}
         public EndpointFormFactor? AudioEndpoint_FormFactor { get; private set; } // Speakers, headphones, headset, SPDIF, etc.
         public Guid? AudioEndpoint_JackSubType { get; private set; } // Contains a GUID for a type of jack, more specific than FormFactor
@@ -39,7 +40,7 @@ namespace WinAudioAssistant.Models
         public string? DeviceClass_IconPath { get; private set; }
         public string? DeviceInterface_FriendlyName { get; private set; } // Set by the driver, but may have a different value if there are duplicate devices
         public string? HostDeviceDesc { get; private set; } // (Actual property name unkown) Appears to be the name of the host device. Usually same as DeviceInterface_FriendlyName, but more consistent.
-        // REMINDER: Add new properties to deserialization constructor and UpdateFromDevice()
+        // REMINDER: Add new properties to deserialization constructor, and UpdateFromDevice(), and ManagedDevice.IdentificationFlags, and...
 
         [JsonIgnore]
         public readonly Guid Guid => AudioEndpoint_GUID;
