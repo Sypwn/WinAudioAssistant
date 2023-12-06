@@ -7,10 +7,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using AudioSwitcher.AudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace WinAudioAssistant.Models
 {
@@ -19,80 +16,166 @@ namespace WinAudioAssistant.Models
     /// </summary>
     public class ManagedDeviceManager
     {
-        // Internal collections of managed devices
-        // If separate comms priority is disabled, those references will be the same as the normal collections
-        private ObservableCollection<ManagedInputDevice> _inputDevices;
-        private ObservableCollection<ManagedInputDevice> _commsInputDevices;
-        private ObservableCollection<ManagedOutputDevice> _outputDevices;
-        private ObservableCollection<ManagedOutputDevice> _commsOutputDevices;
+        // Internal lists of managed devices
+        private readonly ObservableCollection<ManagedInputDevice> _inputDevices = new();
+        private readonly ObservableCollection<ManagedOutputDevice> _outputDevices = new();
+        private readonly ObservableCollection<ManagedInputDevice> _commsInputDevices = new();
+        private readonly ObservableCollection<ManagedOutputDevice> _commsOutputDevices = new();
 
-        // Public read-only references to the internal collections
-        public ReadOnlyObservableCollection<ManagedInputDevice> InputDevices { get; private set; }
-        public ReadOnlyObservableCollection<ManagedInputDevice> CommsInputDevices { get; private set; }
-        public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices { get; private set; }
-        public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices { get; private set;  }
+        // Internal lists of read-only wrappers
+        private readonly ReadOnlyObservableCollection<ManagedInputDevice> _readOnlyInputDevices;
+        private readonly ReadOnlyObservableCollection<ManagedOutputDevice> _readOnlyOutputDevices;
+        private readonly ReadOnlyObservableCollection<ManagedInputDevice> _readOnlyCommsInputDevices;
+        private readonly ReadOnlyObservableCollection<ManagedOutputDevice> _readOnlyCommsOutputDevices;
 
-        private bool _separateCommsPriorityState;
+        // Private properties to access the correct lists based on the SeparateCommsPriorityState
+        private ObservableCollection<ManagedInputDevice> InputDevices => _inputDevices;
+        private ObservableCollection<ManagedOutputDevice> OutputDevices => _outputDevices;
+        private ObservableCollection<ManagedInputDevice> CommsInputDevices => _separateCommsPriorityState ? _commsInputDevices : _inputDevices;
+        private ObservableCollection<ManagedOutputDevice> CommsOutputDevices => _separateCommsPriorityState ? _commsOutputDevices : _outputDevices;
 
+        // Public properties to access the correct read-only lists based on the SeparateCommsPriorityState
+        public ReadOnlyObservableCollection<ManagedInputDevice> ReadOnlyInputDevices => _readOnlyInputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> ReadOnlyOutputDevices => _readOnlyOutputDevices;
+        public ReadOnlyObservableCollection<ManagedInputDevice> ReadOnlyCommsInputDevices => _separateCommsPriorityState ? _readOnlyCommsInputDevices : _readOnlyInputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> ReadOnlyCommsOutputDevices => _separateCommsPriorityState ? _readOnlyCommsOutputDevices : _readOnlyOutputDevices;
+
+        private bool _separateCommsPriorityState = true;
         public bool SeparateCommsPriorityState
         {
             get => _separateCommsPriorityState;
             set
             {
                 if (_separateCommsPriorityState == value) return;
-                _separateCommsPriorityState = value;
-
                 if (value)
                 {
-                    // Copy the current managed devices to new lists of comms devices
-                    _commsInputDevices = new(_inputDevices);
-                    CommsInputDevices = new(_commsInputDevices);
-
-                    _commsOutputDevices = new(_outputDevices);
-                    CommsOutputDevices = new(_commsOutputDevices);
+                    // Set state to true, then copy non-comms devices to comms devices
+                    _separateCommsPriorityState = true;
+                    AddDevices(InputDevices, true);
+                    AddDevices(OutputDevices, true);
                 }
                 else
                 {
-                    // Comms devices reference the same lists as the normal devices
-                    _commsInputDevices = _inputDevices;
-                    CommsInputDevices = InputDevices;
-
-                    _commsOutputDevices = _outputDevices;
-                    CommsOutputDevices = OutputDevices;
+                    // Clear the comms devices, then set state to false
+                    CommsInputDevices.Clear();
+                    CommsOutputDevices.Clear();
+                    _separateCommsPriorityState = false;
                 }
             }
         }
 
-        public ManagedDeviceManager(bool separateCommsPriority)
+        public ManagedDeviceManager()
         {
-            _separateCommsPriorityState = separateCommsPriority;
+            _readOnlyInputDevices = new ReadOnlyObservableCollection<ManagedInputDevice>(_inputDevices);
+            _readOnlyOutputDevices = new ReadOnlyObservableCollection<ManagedOutputDevice>(_outputDevices);
+            _readOnlyCommsInputDevices = new ReadOnlyObservableCollection<ManagedInputDevice>(_commsInputDevices);
+            _readOnlyCommsOutputDevices = new ReadOnlyObservableCollection<ManagedOutputDevice>(_commsOutputDevices);
+        }
 
-            _inputDevices = new();
-            InputDevices = new(_inputDevices);
-
-            _outputDevices = new();
-            OutputDevices = new(_outputDevices);
-
-            if (separateCommsPriority)
+        public void AddDevice(ManagedDevice device, bool isComms)
+        {
+            if (device is ManagedInputDevice inputDevice)
             {
-                // Separate lists for comms devices
-                _commsInputDevices = new();
-                CommsInputDevices = new(_commsInputDevices);
-
-                _commsOutputDevices = new();
-                CommsOutputDevices = new(_commsOutputDevices);
+                var collection = isComms ? CommsInputDevices : InputDevices;
+                if (collection.Contains(inputDevice)) return;
+                collection.Add(inputDevice);
+            }
+            else if (device is ManagedOutputDevice outputDevice)
+            {
+                var collection = isComms ? CommsOutputDevices : OutputDevices;
+                if (collection.Contains(outputDevice)) return;
+                collection.Add(outputDevice);
             }
             else
             {
-                // Comms devices reference the same lists as the normal devices
-                _commsInputDevices = _inputDevices;
-                CommsInputDevices = InputDevices;
-
-                _commsOutputDevices = _outputDevices;
-                CommsOutputDevices = OutputDevices;
+                Debugger.Break();
             }
         }
-        
+
+        public void AddDevices(IEnumerable<ManagedDevice> devices, bool isComms)
+        {
+            foreach (var device in devices)
+            {
+                AddDevice(device, isComms);
+            }
+        }
+
+        public void AddDeviceAt(ManagedDevice device, bool isComms, int index)
+        {
+            if (device is ManagedInputDevice inputDevice)
+            {
+                var collection = isComms ? CommsInputDevices : InputDevices;
+                if (collection.Contains(inputDevice))
+                {
+                    collection.Move(collection.IndexOf(inputDevice), index);
+                }
+                else
+                {
+                    collection.Insert(index, inputDevice);
+                }
+            }
+            else if (device is ManagedOutputDevice outputDevice)
+            {
+                var collection = isComms ? CommsOutputDevices : OutputDevices;
+                if (collection.Contains(outputDevice))
+                {
+                    collection.Move(collection.IndexOf(outputDevice), index);
+                }
+                else
+                {
+                    collection.Insert(index, outputDevice);
+                }
+            }
+            else
+            {
+                Debugger.Break();
+            }
+        }
+
+
+        public void RemoveDevice(ManagedDevice device, bool isComms)
+        {
+            if (device is ManagedInputDevice inputDevice)
+            {
+                var collection = isComms ? CommsInputDevices : InputDevices;
+                if (collection.Contains(inputDevice))
+                {
+                    collection.Remove(inputDevice);
+                }
+            }
+            else if (device is ManagedOutputDevice outputDevice)
+            {
+                var collection = isComms ? CommsOutputDevices : OutputDevices;
+                if (collection.Contains(outputDevice))
+                {
+                    collection.Remove(outputDevice);
+                }
+            }
+            else
+            {
+                Debugger.Break();
+            }
+        }
+
+        public bool HasDevice(ManagedDevice device, bool isComms)
+        {
+            if (device is ManagedInputDevice inputDevice)
+            {
+                var collection = isComms ? CommsInputDevices : InputDevices;
+                return collection.Contains(inputDevice);
+            }
+            else if (device is ManagedOutputDevice outputDevice)
+            {
+                var collection = isComms ? CommsOutputDevices : OutputDevices;
+                return collection.Contains(outputDevice);
+            }
+            else
+            {
+                Debugger.Break();
+                return false;
+            }
+        }
+
         /// <summary>
         /// Updates the default devices for all managed device lists.
         /// </summary>
@@ -101,13 +184,13 @@ namespace WinAudioAssistant.Models
             bool error = false;
             Debug.WriteLine("");
             Debug.WriteLine("Updating default input devices:");
-            error |= !UpdateDefaultDevice(_inputDevices.ToList<ManagedDevice>(), false);
+            error |= !UpdateDefaultDevice(InputDevices.ToList<ManagedDevice>(), false);
             Debug.WriteLine("Updating default output devices:");
-            error |= !UpdateDefaultDevice(_outputDevices.ToList<ManagedDevice>(), false);
+            error |= !UpdateDefaultDevice(OutputDevices.ToList<ManagedDevice>(), false);
             Debug.WriteLine("Updating default comms input devices:");
-            error |= !UpdateDefaultDevice(_commsInputDevices.ToList<ManagedDevice>(), true);
+            error |= !UpdateDefaultDevice(CommsInputDevices.ToList<ManagedDevice>(), true);
             Debug.WriteLine("Updating default comms output devices:");
-            error |= !UpdateDefaultDevice(_commsOutputDevices.ToList<ManagedDevice>(), true);
+            error |= !UpdateDefaultDevice(CommsOutputDevices.ToList<ManagedDevice>(), true);
 
             if (error)
                 SystemEventsHandler.DispatchUpdateCachedEndpoints();
@@ -159,110 +242,6 @@ namespace WinAudioAssistant.Models
             }
             // No matching devices found
             return true;
-        }
-
-        public void AddDevice(ManagedDevice device, bool isComms)
-        {
-            if (device is ManagedInputDevice inputDevice)
-            {
-                var collection = isComms ? _commsInputDevices : _inputDevices;
-                if (collection.Contains(inputDevice)) return;
-                collection.Add(inputDevice);
-            }
-            else if (device is ManagedOutputDevice outputDevice)
-            {
-                var collection = isComms ? _commsOutputDevices : _outputDevices;
-                if (collection.Contains(outputDevice)) return;
-                collection.Add(outputDevice);
-            }
-            else
-            {
-                Debugger.Break();
-            }
-        }
-
-        public void AddDevices(IEnumerable<ManagedDevice> devices, bool isComms)
-        {
-            foreach (var device in devices)
-            {
-                AddDevice(device, isComms);
-            }
-        }
-
-        public void AddDeviceAt(ManagedDevice device, bool isComms, int index)
-        {
-            if (device is ManagedInputDevice inputDevice)
-            {
-                var collection = isComms ? _commsInputDevices : _inputDevices;
-                if (collection.Contains(inputDevice))
-                {
-                    collection.Move(collection.IndexOf(inputDevice), index);
-                }
-                else
-                {
-                    collection.Insert(index, inputDevice);
-                }
-            }
-            else if (device is ManagedOutputDevice outputDevice)
-            {
-                var collection = isComms ? _commsOutputDevices : _outputDevices;
-                if (collection.Contains(outputDevice))
-                {
-                    collection.Move(collection.IndexOf(outputDevice), index);
-                }
-                else
-                {
-                    collection.Insert(index, outputDevice);
-                }
-            }
-            else
-            {
-                Debugger.Break();
-            }
-        }
-
-
-        public void RemoveDevice(ManagedDevice device, bool isComms)
-        {
-            if (device is ManagedInputDevice inputDevice)
-            {
-                var collection = isComms ? _commsInputDevices : _inputDevices;
-                if (collection.Contains(inputDevice))
-                {
-                    collection.Remove(inputDevice);
-                }
-            }
-            else if (device is ManagedOutputDevice outputDevice)
-            {
-                var collection = isComms ? _commsOutputDevices : _outputDevices;
-                if (collection.Contains(outputDevice))
-                {
-                    collection.Remove(outputDevice);
-                }
-            }
-            else
-            {
-                Debugger.Break();
-            }
-        }
-
-        public bool HasDevice(ManagedDevice device, bool isComms)
-        {
-            if (device is ManagedInputDevice inputDevice)
-            {
-                var collection = isComms ? _commsInputDevices : _inputDevices;
-                return collection.Contains(inputDevice);
-            }
-            else if (device is ManagedOutputDevice outputDevice)
-            {
-                var collection = isComms ? _commsOutputDevices : _outputDevices;
-                return collection.Contains(outputDevice);
-            }
-            else
-            {
-                Debugger.Break();
-                return false;
-            }
         }
     }
 }
