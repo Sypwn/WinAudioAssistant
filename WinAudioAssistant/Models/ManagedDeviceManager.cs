@@ -176,6 +176,20 @@ namespace WinAudioAssistant.Models
             }
         }
 
+        public void RepopulateDevices(IEnumerable<ManagedInputDevice>? inputDevices = null, IEnumerable<ManagedOutputDevice>? outputDevices = null,
+                                      IEnumerable<ManagedInputDevice>? commsInputDevices = null, IEnumerable<ManagedOutputDevice>? commsOutputDevices = null)
+        {
+            InputDevices.Clear();
+            OutputDevices.Clear();
+            CommsInputDevices.Clear();
+            CommsOutputDevices.Clear();
+
+            if (inputDevices != null) AddDevices(inputDevices, false);
+            if (outputDevices != null) AddDevices(outputDevices, false);
+            if (commsInputDevices != null) AddDevices(commsInputDevices, true);
+            if (commsOutputDevices != null) AddDevices(commsOutputDevices, true);
+        }
+
         /// <summary>
         /// Updates the default devices for all managed device lists.
         /// </summary>

@@ -176,12 +176,13 @@ namespace WinAudioAssistant.ViewModels
 
         public void Cancel(object? parameter)
         {
+            App.UserSettings.Load();
             CloseViewAction();
         }
 
         public bool Apply(object? parameter)
         {
-            App.UserSettings.SaveToFile();
+            App.UserSettings.Save();
             return true;
         }
 

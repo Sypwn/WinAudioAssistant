@@ -12,23 +12,16 @@ namespace WinAudioAssistant
     /// </summary>
     public partial class App : Application
     {
-        public static CoreAudioController CoreAudioController { get; private set; } = new();
-        public static IconManager IconManager { get; private set; } = new();
-        public static AudioEndpointManager AudioEndpointManager { get; private set; } = new();  
-#if DEBUG
-#pragma warning disable CS8625
-        // Give me NREs if I try to use this before it's properly loaded
-        public static UserSettings UserSettings { get; private set; } = null;
-#pragma warning restore CS8625
-#else
-        public static UserSettings UserSettings { get; private set; } = new();
-#endif
+        public static readonly CoreAudioController CoreAudioController = new();
+        public static readonly IconManager IconManager = new();
+        public static readonly AudioEndpointManager AudioEndpointManager = new();
+        public static readonly UserSettings UserSettings = new();
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            UserSettings = UserSettings.LoadAtStartup();
+            UserSettings.Startup();
             SystemEventsHandler.RegisterAllEvents();
             new TrayIconView();
         }
