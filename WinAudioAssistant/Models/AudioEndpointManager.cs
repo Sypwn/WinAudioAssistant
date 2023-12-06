@@ -17,11 +17,7 @@ namespace WinAudioAssistant.Models
         private ObservableCollection<AudioEndpointInfo> _cachedEndpoints { get; } = new();
         public ReadOnlyObservableCollection<AudioEndpointInfo> CachedEndpoints => new(_cachedEndpoints);
 
-        public AudioEndpointManager()
-        {
-            // UpdateCachedEndpoints(); // Don't, because this is constructed before UserSettings are loaded
-        }
-
+        // Should only be called by SystemEventsHandler
         public void UpdateCachedEndpoints()
         {
             _cachedEndpoints.Clear();
@@ -29,7 +25,6 @@ namespace WinAudioAssistant.Models
             {
                 _cachedEndpoints.Add(new AudioEndpointInfo(device));
             }
-            App.UserSettings.ManagedDevices.UpdateDefaultDevices();
         }
 
         /// <summary>

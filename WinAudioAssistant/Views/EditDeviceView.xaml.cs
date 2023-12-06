@@ -29,6 +29,7 @@ namespace WinAudioAssistant.Views
             if (DataContext is EditDeviceViewModel viewModel)
             {
                 viewModel.CloseViewAction = Close;
+                this.Unloaded += (_,_) => viewModel.Cleanup();
 
                 viewModel.ManagedDeviceIdentificationMethods.Add(new EditDeviceViewModel.DeviceIdentificationMethodOption
                 {

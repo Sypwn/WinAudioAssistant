@@ -15,7 +15,6 @@ namespace WinAudioAssistant
         public static CoreAudioController CoreAudioController { get; private set; } = new();
         public static IconManager IconManager { get; private set; } = new();
         public static AudioEndpointManager AudioEndpointManager { get; private set; } = new();  
-        public static SystemEventsHandler SystemEventsHandler { get; private set; } = new();
 #if DEBUG
 #pragma warning disable CS8625
         // Give me NREs if I try to use this before it's properly loaded
@@ -31,7 +30,6 @@ namespace WinAudioAssistant
 
             UserSettings = UserSettings.LoadAtStartup();
             SystemEventsHandler.RegisterAllEvents();
-            AudioEndpointManager.UpdateCachedEndpoints();
             new TrayIconView();
         }
     }

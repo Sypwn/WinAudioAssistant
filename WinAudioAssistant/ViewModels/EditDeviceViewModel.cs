@@ -92,9 +92,6 @@ namespace WinAudioAssistant.ViewModels
 
         public EditDeviceViewModel()
         {
-            // When an endpoint list filter checkbox is toggled, update the filtered list of endpoints
-            EndpointListFilter.PropertyChanged += (_, _) => UpdateFilteredEndpoints();
-
             RefreshDevicesCommand = new RelayCommand(RefreshDevices);
             OkCommand = new RelayCommand(Ok);
             CancelCommand = new RelayCommand(Cancel);
@@ -116,9 +113,7 @@ namespace WinAudioAssistant.ViewModels
             _managedDeviceIentificationMethod = device.IdentificationMethod;
             _managedDeviceCustomIdentificationFlags.Value = device.CustomIdentificationFlags & AvailableCustomIdentificationFlags; // Mask out any flags that are not available to be set
 
-            _initialized = true;
-            UpdateFilteredEndpoints();
-            OnPropertyChanged(string.Empty); // Refreshes all properties
+            Initialize();
         }
 
         public void Initialize(DeviceType dataFlow, bool isComms)
@@ -130,9 +125,28 @@ namespace WinAudioAssistant.ViewModels
             IsComms = isComms;
             WindowTitle = "New " + (DataFlow == DeviceType.Capture ? "Input" : "Output") + (isComms ? "Comms " : "") + " Managed Device";
 
-            _initialized = true;
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            // When an endpoint list filter checkbox is toggled, or when the list of unpoints is updated, update the filtered list of endpoints
+            EndpointListFilter.PropertyChanged += (_, _) => UpdateFilteredEndpoints();
+            SystemEventsHandler.UpdatedCachedEndpointsEvent += (_, _) => UpdateFilteredEndpoints();
+
             UpdateFilteredEndpoints();
+            _initialized = true;
             OnPropertyChanged(string.Empty); // Refreshes all properties
+        }
+
+        public void Cleanup()
+        {
+            Debug.Assert(_initialized);
+            if (!_initialized) return;
+            _initialized = false;
+
+            EndpointListFilter.PropertyChanged -= (_, _) => UpdateFilteredEndpoints();
+            SystemEventsHandler.UpdatedCachedEndpointsEvent -= (_, _) => UpdateFilteredEndpoints();
         }
 
         private void UpdateFilteredEndpoints()
@@ -166,8 +180,7 @@ namespace WinAudioAssistant.ViewModels
 
         public void RefreshDevices(object? parameter)
         {
-            App.AudioEndpointManager.UpdateCachedEndpoints();
-            UpdateFilteredEndpoints();
+            SystemEventsHandler.DispatchUpdateCachedEndpoints();
         }
 
         public void Ok(object? parameter)
