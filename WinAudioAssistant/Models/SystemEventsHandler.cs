@@ -30,7 +30,7 @@ namespace WinAudioAssistant.Models
 
         private static void UpdateDefaultDevicesAction()
         {
-            App.UserSettings.ManagedDevices.UpdateDefaultDevices();
+            App.UserSettings.UpdateDefaultDevices();
             UpdatedDefaultDevicesEvent?.Invoke(null, EventArgs.Empty);
         }
 

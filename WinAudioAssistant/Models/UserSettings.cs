@@ -12,14 +12,24 @@ namespace WinAudioAssistant.Models
     [JsonObject(MemberSerialization.OptIn)]
     public class UserSettings
     {
+        private ManagedDeviceManager ManagedDevices { get; }
         [JsonProperty]
         public bool SeparateCommsPriority
         {
-            get => ManagedDevices.SeparateCommsPriorityState;
-            set => ManagedDevices.SeparateCommsPriorityState = value;
+            get { return ManagedDevices.SeparateCommsPriorityState; }
+            set { ManagedDevices.SeparateCommsPriorityState = value; }
         }
+        public ReadOnlyObservableCollection<ManagedInputDevice> ManagedInputDevices => ManagedDevices.InputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> ManagedOutputDevices => ManagedDevices.OutputDevices;
+        public ReadOnlyObservableCollection<ManagedInputDevice> ManagedCommsInputDevices => ManagedDevices.CommsInputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> ManagedCommsOutputDevices => ManagedDevices.CommsOutputDevices;
+        public void AddManagedDevice(ManagedDevice device, bool isComms) => ManagedDevices.AddDevice(device, isComms);
+        public void AddManagedDeviceAt(ManagedDevice device, bool isComms, int index) => ManagedDevices.AddDeviceAt(device, isComms, index);
+        public void RemoveManagedDevice(ManagedDevice device, bool isComms) => ManagedDevices.RemoveDevice(device, isComms);
+        public bool HasManagedDevice(ManagedDevice device, bool isComms) => ManagedDevices.HasDevice(device, isComms);
+        public void UpdateDefaultDevices() => ManagedDevices.UpdateDefaultDevices(); // Should only be called by SystemEventsHandler
 
-        public ManagedDeviceManager ManagedDevices { get; }
+
 
         public UserSettings()
         {

@@ -216,13 +216,13 @@ namespace WinAudioAssistant.ViewModels
                 _managedDevice.Name = ManagedDeviceName;
                 _managedDevice.IdentificationMethod = _managedDeviceIentificationMethod;
                 _managedDevice.CustomIdentificationFlags = _managedDeviceCustomIdentificationFlags.Value & AvailableCustomIdentificationFlags;
-                App.UserSettings.ManagedDevices.AddDevice(_managedDevice, IsComms);
+                App.UserSettings.AddManagedDevice(_managedDevice, IsComms);
                 return true;
             }
             else
             {
                 // Editing an existing managed device
-                if (App.UserSettings.ManagedDevices.HasDevice(_managedDevice, IsComms))
+                if (App.UserSettings.HasManagedDevice(_managedDevice, IsComms))
                 {
                     _managedDevice.Name = ManagedDeviceName;
                     _managedDevice.SetEndpoint(_managedDeviceEndpointInfo.Value);

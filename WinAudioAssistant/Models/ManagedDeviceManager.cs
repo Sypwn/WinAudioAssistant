@@ -96,7 +96,6 @@ namespace WinAudioAssistant.Models
         /// <summary>
         /// Updates the default devices for all managed device lists.
         /// </summary>
-        /// Should only be called by SystemEventsHandler
         public void UpdateDefaultDevices()
         {
             bool error = false;
