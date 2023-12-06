@@ -71,9 +71,12 @@ namespace WinAudioAssistant.ViewModels
             get => App.UserSettings.SeparateCommsPriority;
             set
             {
-                if (value == false && App.UserSettings.ManagedCommsInputDevices.Count + App.UserSettings.ManagedCommsOutputDevices.Count > 0)
+                if (value == false && // If we're unchecking the box and...
+                    (App.UserSettings.ManagedCommsOutputDevices.Except(App.UserSettings.ManagedOutputDevices).Any() || // there are any unique managed Comms output devices, or...
+                     App.UserSettings.ManagedCommsInputDevices.Except(App.UserSettings.ManagedInputDevices).Any())) // there are any unique managed Comms input devices
                 {
-                    MessageBoxResult messageBoxResult = MessageBox.Show("Unchecking this box will clear your managed Comms devices. Are you sure?", "Clear Managed Comms Devices", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    MessageBoxResult messageBoxResult = MessageBox.Show("Unchecking this box will clear your managed Comms devices, and instead make them match your primary devices." +
+                        "\nAre you sure you want to do this?", "Clear Managed Comms Devices", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                     if (messageBoxResult != MessageBoxResult.Yes) return;
                 }
                 App.UserSettings.SeparateCommsPriority = value;
