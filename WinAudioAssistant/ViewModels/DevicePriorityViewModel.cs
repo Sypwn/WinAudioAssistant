@@ -88,6 +88,24 @@ namespace WinAudioAssistant.ViewModels
             }
         }
 
+        public double WindowWidth
+        {
+            get => App.UserSettings.PriorityConfigurationWindowWidth;
+            set
+            {
+                App.UserSettings.PriorityConfigurationWindowWidth = value;
+                OnPropertyChanged(nameof(WindowWidth));
+            }
+        }
+        public double WindowHeight
+        {
+            get => App.UserSettings.PriorityConfigurationWindowHeight;
+            set
+            {
+                App.UserSettings.PriorityConfigurationWindowHeight = value;
+                OnPropertyChanged(nameof(WindowHeight));
+            }
+        }
         public ReadOnlyObservableCollection<ManagedInputDevice> InputDevices => App.UserSettings.ManagedInputDevices;
         public ReadOnlyObservableCollection<ManagedInputDevice> CommsInputDevices => App.UserSettings.ManagedCommsInputDevices;
         public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.ManagedOutputDevices;

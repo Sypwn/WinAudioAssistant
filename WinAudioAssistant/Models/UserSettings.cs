@@ -16,6 +16,8 @@ namespace WinAudioAssistant.Models
             get { return ManagedDevices.SeparateCommsPriorityState; }
             set { ManagedDevices.SeparateCommsPriorityState = value; }
         }
+        public double PriorityConfigurationWindowWidth { get; set; } = 600;
+        public double PriorityConfigurationWindowHeight { get; set; } = 300;
 
         [JsonIgnore]
         private ManagedDeviceManager ManagedDevices { get; } = new();

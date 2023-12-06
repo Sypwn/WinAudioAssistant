@@ -24,7 +24,13 @@ namespace WinAudioAssistant.Views
             InitializeComponent();
             Debug.Assert(DataContext is DevicePriorityViewModel);
             if (DataContext is DevicePriorityViewModel viewModel)
+            {
                 viewModel.CloseViewAction = Close;
+
+                // The bindings don't take effect until after fade-in for some reason
+                this.Width = viewModel.WindowWidth;
+                this.Height = viewModel.WindowHeight;
+            }
 
             // Assign a tag to each ListBox, for use by the ViewModel
             OutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Playback, IsComms = false };

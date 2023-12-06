@@ -8,7 +8,7 @@
         xmlns:converters="clr-namespace:WinAudioAssistant.Converters"
         xmlns:gwdd="urn:gong-wpf-dragdrop"
         mc:Ignorable="d"
-        Title="DevicePriorityView" Height="300" Width="600">
+        Title="DevicePriorityView" Width="{Binding WindowWidth, Mode=TwoWay}" Height="{Binding WindowHeight, Mode=TwoWay}">
     <Window.DataContext>
         <viewmodels:DevicePriorityViewModel/>
     </Window.DataContext>
