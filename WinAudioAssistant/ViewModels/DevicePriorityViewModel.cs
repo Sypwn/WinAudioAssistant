@@ -111,9 +111,10 @@ namespace WinAudioAssistant.ViewModels
         public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.ManagedOutputDevices;
         public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.ManagedCommsOutputDevices;
 
-        // Updated in the view whenever the context menu is opened
-        public ListBox? ActiveListBox { get; set; } // Tracks which ListBox was most recently interacted with
         public Action CloseViewAction { get; set; } = () => { }; // Set in the view
+        public Action FocusViewAction { get; set; } = () => { }; // Set in the view
+        public List<EditDeviceViewModel> EditDeviceViewModels { get; set; } = new(); // Contains a list of child Edit Managed Device dialogs
+        public ListBox? ActiveListBox { get; set; } // Tracks which ListBox was most recently interacted with
 
         public RelayCommand AddDeviceCommand { get; }
         public RelayCommand EditDeviceCommand { get; }
@@ -124,6 +125,8 @@ namespace WinAudioAssistant.ViewModels
 
         public DevicePriorityViewModel()
         {
+            Debug.Assert(App.DevicePriorityViewModel is null);
+            App.DevicePriorityViewModel = this;
             AddDeviceCommand = new RelayCommand(AddDevice);
             EditDeviceCommand = new RelayCommand(EditDevice, CanEditDevice);
             RemoveDeviceCommand = new RelayCommand(RemoveDevice, CanRemoveDevice);
@@ -138,8 +141,17 @@ namespace WinAudioAssistant.ViewModels
             if (ActiveListBox?.Tag is ListBoxTag tag)
             {
                 var editDeviceView = new EditDeviceView();
-                ((EditDeviceViewModel)editDeviceView.DataContext).Initialize(tag.DataFlow, tag.IsComms);
-                editDeviceView.Show();
+                Debug.Assert(editDeviceView.DataContext is EditDeviceViewModel);
+                if (editDeviceView.DataContext is EditDeviceViewModel editDeviceViewModel)
+                {
+                    editDeviceViewModel.InitializeNew(tag.DataFlow, tag.IsComms);
+                    editDeviceView.Show();
+                }
+                else
+                {
+                    editDeviceView.Close();
+                }
+                
             }
         }
 
@@ -150,19 +162,24 @@ namespace WinAudioAssistant.ViewModels
             if (ActiveListBox?.SelectedItem is ManagedDevice device && ActiveListBox.Tag is ListBoxTag tag)
             {
                 // Check if device is already being edited, and if so focus the window.
-                foreach (var window in App.Current.Windows)
+                var existingViewModel = EditDeviceViewModels.Find(item => item.ManagedDevice == device);
+                if (existingViewModel is not null)
                 {
-                    if (window is EditDeviceView editDeviceView &&
-                        editDeviceView.DataContext is EditDeviceViewModel editDeviceViewModel &&
-                        editDeviceViewModel.ManagedDevice == device)
-                    {
-                        editDeviceView.Focus();
-                        return;
-                    }
+                    existingViewModel.FocusViewAction();
+                    return;
                 }
-                var newEditDeviceView = new EditDeviceView();
-                ((EditDeviceViewModel)newEditDeviceView.DataContext).Initialize(device, tag.IsComms);
-                newEditDeviceView.Show();
+
+                var editDeviceView = new EditDeviceView();
+                Debug.Assert(editDeviceView.DataContext is EditDeviceViewModel);
+                if (editDeviceView.DataContext is EditDeviceViewModel editDeviceViewModel)
+                {
+                    editDeviceViewModel.InitializeEdit(device, tag.IsComms);
+                    editDeviceView.Show();
+                }
+                else
+                {
+                    editDeviceView.Close();
+                }
             }
         }
 
@@ -201,6 +218,22 @@ namespace WinAudioAssistant.ViewModels
         public bool Apply(object? parameter)
         {
             App.UserSettings.Save();
+            return true;
+        }
+
+        public void Cleanup()
+        {
+            Debug.Assert(App.DevicePriorityViewModel == this);
+            App.DevicePriorityViewModel = null;
+        }
+
+        public bool ShouldClose()
+        {
+            if (EditDeviceViewModels.Count > 0)
+            {
+                EditDeviceViewModels[0].FocusViewAction();
+                return false;
+            }
             return true;
         }
 

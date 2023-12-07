@@ -23,15 +23,10 @@ namespace WinAudioAssistant.ViewModels
 
         private void Settings(object? parameter)
         {
-            foreach (var window in App.Current.Windows)
-            {
-                if (window is DevicePriorityView devicePriorityView)
-                {
-                    devicePriorityView.Focus();
-                    return;
-                }
-            }
-            new DevicePriorityView().Show();
+            if (App.DevicePriorityViewModel is not null)
+                App.DevicePriorityViewModel.FocusViewAction();
+            else
+                new DevicePriorityView().Show();
         }
 
         private void Exit(object? parameter)

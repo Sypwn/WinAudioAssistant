@@ -29,6 +29,7 @@ namespace WinAudioAssistant.Views
             if (DataContext is EditDeviceViewModel viewModel)
             {
                 viewModel.CloseViewAction = Close;
+                viewModel.FocusViewAction = () => Focus(); // Focus returns bool, so we need to wrap it in a lambda
                 this.Unloaded += (_,_) => viewModel.Cleanup();
 
                 viewModel.ManagedDeviceIdentificationMethods.Add(new EditDeviceViewModel.DeviceIdentificationMethodOption

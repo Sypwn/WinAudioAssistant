@@ -4,6 +4,7 @@ using System.Windows;
 using WinAudioAssistant.Models;
 using AudioSwitcher.AudioApi.CoreAudio;
 using WinAudioAssistant.Views;
+using WinAudioAssistant.ViewModels;
 
 namespace WinAudioAssistant
 {
@@ -16,6 +17,7 @@ namespace WinAudioAssistant
         public static readonly IconManager IconManager = new();
         public static readonly AudioEndpointManager AudioEndpointManager = new();
         public static readonly UserSettings UserSettings = new();
+        public static DevicePriorityViewModel? DevicePriorityViewModel { get; set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {

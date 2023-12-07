@@ -24,6 +24,7 @@ namespace WinAudioAssistant.ViewModels
 
         // === ViewModel properties ===
         public Action CloseViewAction { get; set; } = () => { }; // Set in the view
+        public Action FocusViewAction { get; set; } = () => { }; // Set in the view
         public RelayCommand RefreshDevicesCommand { get; }
         public RelayCommand OkCommand { get; }
         public RelayCommand CancelCommand { get; }
@@ -92,13 +93,16 @@ namespace WinAudioAssistant.ViewModels
 
         public EditDeviceViewModel()
         {
+            Debug.Assert(App.DevicePriorityViewModel is not null);
+            Debug.Assert(App.DevicePriorityViewModel?.EditDeviceViewModels.Contains(this) == false);
+            App.DevicePriorityViewModel?.EditDeviceViewModels.Add(this);
             RefreshDevicesCommand = new RelayCommand(RefreshDevices);
             OkCommand = new RelayCommand(Ok);
             CancelCommand = new RelayCommand(Cancel);
             ApplyCommand = new RelayCommand((object? p) => { Apply(p); }); // Apply() has bool return type
         }
 
-        public void Initialize(ManagedDevice device, bool isComms)
+        public void InitializeEdit(ManagedDevice device, bool isComms)
         {
             //Editing an existing managed device
             Debug.Assert(!_initialized);
@@ -116,7 +120,7 @@ namespace WinAudioAssistant.ViewModels
             Initialize();
         }
 
-        public void Initialize(DeviceType dataFlow, bool isComms)
+        public void InitializeNew(DeviceType dataFlow, bool isComms)
         {
             //Creating a new managed device
             Debug.Assert(!_initialized);
@@ -141,6 +145,10 @@ namespace WinAudioAssistant.ViewModels
 
         public void Cleanup()
         {
+            Debug.Assert(App.DevicePriorityViewModel is not null);
+            Debug.Assert(App.DevicePriorityViewModel?.EditDeviceViewModels.Contains(this) == true);
+            App.DevicePriorityViewModel?.EditDeviceViewModels.Remove(this);
+
             Debug.Assert(_initialized);
             if (!_initialized) return;
             _initialized = false;
