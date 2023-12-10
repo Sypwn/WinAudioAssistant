@@ -1,9 +1,10 @@
-﻿<Window x:Class="WinAudioAssistant.Views.EditDeviceView"
+﻿<views:BaseView x:Class="WinAudioAssistant.Views.EditDeviceView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WinAudioAssistant.Views"
+        xmlns:views="clr-namespace:WinAudioAssistant.Views"
         xmlns:viewmodels="clr-namespace:WinAudioAssistant.ViewModels"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}" Height="Auto" Width="350" MinWidth="350" SizeToContent="Height" LayoutUpdated="Window_LayoutUpdated">
@@ -156,4 +157,4 @@
             <Button Content="Apply" Width="75" Margin="10,0,0,0" Command="{Binding ApplyCommand}" ToolTip="Saves changes without closing the dialog."/>
         </StackPanel>
     </Grid>
-</Window>
+</views:BaseView>

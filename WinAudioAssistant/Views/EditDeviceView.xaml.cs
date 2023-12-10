@@ -20,18 +20,14 @@ namespace WinAudioAssistant.Views
     /// <summary>
     /// Interaction logic for EditDeviceView.xaml
     /// </summary>
-    public partial class EditDeviceView : Window
+    public partial class EditDeviceView : BaseView
     {
+        public override void InitializeViewComponent() => InitializeComponent();
         public EditDeviceView()
         {
-            InitializeComponent();
             Debug.Assert(DataContext is EditDeviceViewModel);
             if (DataContext is EditDeviceViewModel viewModel)
             {
-                viewModel.CloseViewAction = Close;
-                viewModel.FocusViewAction = () => Focus(); // Focus returns bool, so we need to wrap it in a lambda
-                this.Unloaded += (_,_) => viewModel.Cleanup();
-
                 viewModel.ManagedDeviceIdentificationMethods.Add(new EditDeviceViewModel.DeviceIdentificationMethodOption
                 {
                     Name = "Strict",

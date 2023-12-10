@@ -22,7 +22,7 @@ namespace WinAudioAssistant.ViewModels
         public bool IsComms;
     }
 
-    public class DevicePriorityViewModel : ViewModel, IDropTarget
+    public class DevicePriorityViewModel : BaseViewModel, IDropTarget
     {
         void IDropTarget.DragOver(IDropInfo dropInfo)
         {
@@ -111,17 +111,12 @@ namespace WinAudioAssistant.ViewModels
         public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.ManagedOutputDevices;
         public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.ManagedCommsOutputDevices;
 
-        public Action CloseViewAction { get; set; } = () => { }; // Set in the view
-        public Action FocusViewAction { get; set; } = () => { }; // Set in the view
         public List<EditDeviceViewModel> EditDeviceViewModels { get; set; } = new(); // Contains a list of child Edit Managed Device dialogs
         public ListBox? ActiveListBox { get; set; } // Tracks which ListBox was most recently interacted with
 
         public RelayCommand AddDeviceCommand { get; }
         public RelayCommand EditDeviceCommand { get; }
         public RelayCommand RemoveDeviceCommand { get; }
-        public RelayCommand OkCommand { get; }
-        public RelayCommand CancelCommand { get; }
-        public RelayCommand ApplyCommand { get; }
 
         public DevicePriorityViewModel()
         {
@@ -130,9 +125,6 @@ namespace WinAudioAssistant.ViewModels
             AddDeviceCommand = new RelayCommand(AddDevice);
             EditDeviceCommand = new RelayCommand(EditDevice, CanEditDevice);
             RemoveDeviceCommand = new RelayCommand(RemoveDevice, CanRemoveDevice);
-            OkCommand = new RelayCommand(Ok);
-            CancelCommand = new RelayCommand(Cancel);
-            ApplyCommand = new RelayCommand((object? p) => { Apply(p); }); // Apply() has bool return type
         }
 
         private void AddDevice(object? parameter)
@@ -203,31 +195,17 @@ namespace WinAudioAssistant.ViewModels
             return ActiveListBox?.SelectedItem is ManagedDevice;
         }
 
-        public void Ok(object? parameter)
+        public override bool Apply()
         {
-            if (Apply(parameter))
-                CloseViewAction();
+            return App.UserSettings.Save();
         }
 
-        public void Cancel(object? parameter)
+        public override bool Discard()
         {
-            App.UserSettings.Load();
-            CloseViewAction();
+            return App.UserSettings.Load();
         }
 
-        public bool Apply(object? parameter)
-        {
-            App.UserSettings.Save();
-            return true;
-        }
-
-        public void Cleanup()
-        {
-            Debug.Assert(App.DevicePriorityViewModel == this);
-            App.DevicePriorityViewModel = null;
-        }
-
-        public bool ShouldClose()
+        public override bool ShouldClose()
         {
             if (EditDeviceViewModels.Count > 0)
             {
@@ -235,6 +213,12 @@ namespace WinAudioAssistant.ViewModels
                 return false;
             }
             return true;
+        }
+
+        public override void Cleanup()
+        {
+            Debug.Assert(App.DevicePriorityViewModel == this);
+            App.DevicePriorityViewModel = null;
         }
 
         public void PriorityListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

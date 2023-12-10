@@ -12,7 +12,7 @@ using WinAudioAssistant.Models;
 
 namespace WinAudioAssistant.ViewModels
 {
-    public class EditDeviceViewModel : ViewModel
+    public class EditDeviceViewModel : BaseViewModel
     {
         public struct DeviceIdentificationMethodOption
         {
@@ -23,14 +23,7 @@ namespace WinAudioAssistant.ViewModels
         public const int IconSize = 32;
 
         // === ViewModel properties ===
-        public Action CloseViewAction { get; set; } = () => { }; // Set in the view
-        public Action FocusViewAction { get; set; } = () => { }; // Set in the view
         public RelayCommand RefreshDevicesCommand { get; }
-        public RelayCommand OkCommand { get; }
-        public RelayCommand CancelCommand { get; }
-        public RelayCommand ApplyCommand { get; }
-
-        // === Fundamental fields and properties ===
         private bool _initialized = false;
         private ManagedDevice? _managedDevice; // Original managed device reference. Null if creating a new one
         public ManagedDevice? ManagedDevice { get => _managedDevice;}
@@ -97,9 +90,6 @@ namespace WinAudioAssistant.ViewModels
             Debug.Assert(App.DevicePriorityViewModel?.EditDeviceViewModels.Contains(this) == false);
             App.DevicePriorityViewModel?.EditDeviceViewModels.Add(this);
             RefreshDevicesCommand = new RelayCommand(RefreshDevices);
-            OkCommand = new RelayCommand(Ok);
-            CancelCommand = new RelayCommand(Cancel);
-            ApplyCommand = new RelayCommand((object? p) => { Apply(p); }); // Apply() has bool return type
         }
 
         public void InitializeEdit(ManagedDevice device, bool isComms)
@@ -143,20 +133,6 @@ namespace WinAudioAssistant.ViewModels
             OnPropertyChanged(string.Empty); // Refreshes all properties
         }
 
-        public void Cleanup()
-        {
-            Debug.Assert(App.DevicePriorityViewModel is not null);
-            Debug.Assert(App.DevicePriorityViewModel?.EditDeviceViewModels.Contains(this) == true);
-            App.DevicePriorityViewModel?.EditDeviceViewModels.Remove(this);
-
-            Debug.Assert(_initialized);
-            if (!_initialized) return;
-            _initialized = false;
-
-            EndpointListFilter.PropertyChanged -= (_, _) => UpdateFilteredEndpoints();
-            SystemEventsHandler.UpdatedCachedEndpointsEvent -= (_, _) => UpdateFilteredEndpoints();
-        }
-
         private void UpdateFilteredEndpoints()
         {
             // Note: _initialized could be true or false at this time
@@ -191,18 +167,7 @@ namespace WinAudioAssistant.ViewModels
             SystemEventsHandler.DispatchUpdateCachedEndpoints();
         }
 
-        public void Ok(object? parameter)
-        {
-            if (Apply(parameter))
-                CloseViewAction();
-        }
-
-        public void Cancel(object? parameter)
-        {
-            CloseViewAction();
-        }
-
-        public bool Apply(object? parameter)
+        public override bool Apply()
         {
             // Applies changes to the managed device. Returns true if successful.
             Debug.Assert(_initialized);
@@ -244,7 +209,7 @@ namespace WinAudioAssistant.ViewModels
                     if (messageBoxResult == MessageBoxResult.Yes)
                     {
                         _managedDevice = null;
-                        return Apply(parameter);
+                        return Apply();
                     }
                     else
                     {
@@ -252,6 +217,24 @@ namespace WinAudioAssistant.ViewModels
                     }
                 }
             }
+        }
+
+        public override bool Discard() { return true; }
+
+        public override bool ShouldClose() { return true; }
+
+        public override void Cleanup()
+        {
+            Debug.Assert(App.DevicePriorityViewModel is not null);
+            Debug.Assert(App.DevicePriorityViewModel?.EditDeviceViewModels.Contains(this) == true);
+            App.DevicePriorityViewModel?.EditDeviceViewModels.Remove(this);
+
+            Debug.Assert(_initialized);
+            if (!_initialized) return;
+            _initialized = false;
+
+            EndpointListFilter.PropertyChanged -= (_, _) => UpdateFilteredEndpoints();
+            SystemEventsHandler.UpdatedCachedEndpointsEvent -= (_, _) => UpdateFilteredEndpoints();
         }
     }
 }

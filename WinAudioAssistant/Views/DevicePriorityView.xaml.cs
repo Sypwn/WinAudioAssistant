@@ -17,18 +17,14 @@ namespace WinAudioAssistant.Views
     /// <summary>
     /// Interaction logic for DevicePriorityView.xaml
     /// </summary>
-    public partial class DevicePriorityView : Window
+    public partial class DevicePriorityView : BaseView
     {
+        public override void InitializeViewComponent() => InitializeComponent();
         public DevicePriorityView()
         {
-            InitializeComponent();
             Debug.Assert(DataContext is DevicePriorityViewModel);
             if (DataContext is DevicePriorityViewModel viewModel)
             {
-                viewModel.CloseViewAction = Close;
-                viewModel.FocusViewAction = () => Focus(); // Focus returns bool, so we need to wrap it in a lambda
-                this.Unloaded += (_, _) => viewModel.Cleanup();
-
                 // The bindings don't take effect until after fade-in for some reason
                 this.Width = viewModel.WindowWidth;
                 this.Height = viewModel.WindowHeight;
@@ -39,13 +35,6 @@ namespace WinAudioAssistant.Views
             CommsOutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Playback, IsComms = true };
             InputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Capture, IsComms = false };
             CommsInputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Capture, IsComms = true };
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            Debug.Assert(DataContext is DevicePriorityViewModel);
-            if (DataContext is DevicePriorityViewModel viewModel && !viewModel.ShouldClose())
-                e.Cancel = true;
         }
 
         private void SeparateCommsPriorityCheckBox_Checked(object sender, RoutedEventArgs e)
