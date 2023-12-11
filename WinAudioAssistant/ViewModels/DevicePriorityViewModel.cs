@@ -63,6 +63,7 @@ namespace WinAudioAssistant.ViewModels
             {
                 App.UserSettings.AddManagedDeviceAt(device, targetTag.IsComms,
                     dropInfo.InsertIndex == 0 ? 0 : dropInfo.InsertIndex - 1); //Fix index off-by-one when dropping.
+                PendingChanges = true;
             }
         }
 
@@ -80,6 +81,7 @@ namespace WinAudioAssistant.ViewModels
                     if (messageBoxResult != MessageBoxResult.Yes) return;
                 }
                 App.UserSettings.SeparateCommsPriority = value;
+                PendingChanges = true;
                 OnPropertyChanged(nameof(SeparateCommsPriority));
 
                 // When this is toggled, the references to the comms devices change (DeviceManager.SeparateCommsPriorityState)
@@ -111,6 +113,7 @@ namespace WinAudioAssistant.ViewModels
         public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.ManagedOutputDevices;
         public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.ManagedCommsOutputDevices;
 
+        public bool PendingChanges { get; set; } = false; // True when there are unsaved changes
         public List<EditDeviceViewModel> EditDeviceViewModels { get; set; } = new(); // Contains a list of child Edit Managed Device dialogs
         public ListBox? ActiveListBox { get; set; } // Tracks which ListBox was most recently interacted with
 
@@ -187,6 +190,7 @@ namespace WinAudioAssistant.ViewModels
             if (ActiveListBox?.SelectedItem is ManagedDevice device && ActiveListBox.Tag is ListBoxTag tag)
             {
                 App.UserSettings.RemoveManagedDevice(device, tag.IsComms);
+                PendingChanges = true;
             }
         }
 
@@ -197,7 +201,15 @@ namespace WinAudioAssistant.ViewModels
 
         public override bool Apply()
         {
-            return App.UserSettings.Save();
+            {
+                SystemEventsHandler.DispatchUpdateDefaultDevices();
+                if (App.UserSettings.Save())
+                {
+                    PendingChanges = false;
+                    return true;
+                }
+                return false;
+            }
         }
 
         public override bool Discard()
@@ -211,6 +223,14 @@ namespace WinAudioAssistant.ViewModels
             {
                 EditDeviceViewModels[0].FocusViewAction();
                 return false;
+            }
+            if (PendingChanges)
+            {
+                MessageBoxResult messageBoxResult = MessageBox.Show("You have unsaved changes. Are you sure you want to close this window?", "Unsaved Changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (messageBoxResult == MessageBoxResult.Yes)
+                    PendingChanges = false;
+                else
+                    return false;
             }
             return true;
         }

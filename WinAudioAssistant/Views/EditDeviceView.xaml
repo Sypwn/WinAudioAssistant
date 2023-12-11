@@ -7,7 +7,8 @@
         xmlns:views="clr-namespace:WinAudioAssistant.Views"
         xmlns:viewmodels="clr-namespace:WinAudioAssistant.ViewModels"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}" Height="Auto" Width="350" MinWidth="350" SizeToContent="Height" LayoutUpdated="Window_LayoutUpdated">
+        Title="{Binding WindowTitle}" Height="Auto" Width="350" MinWidth="350" SizeToContent="Height" LayoutUpdated="Window_LayoutUpdated"
+        Closing="Window_Closing">
     <Window.DataContext>
         <viewmodels:EditDeviceViewModel/>
     </Window.DataContext>

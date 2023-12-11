@@ -24,7 +24,9 @@ namespace WinAudioAssistant.ViewModels
 
         // === ViewModel properties ===
         public RelayCommand RefreshDevicesCommand { get; }
+
         private bool _initialized = false;
+        private bool PendingChanges { get; set; } = false;
         private ManagedDevice? _managedDevice; // Original managed device reference. Null if creating a new one
         public ManagedDevice? ManagedDevice { get => _managedDevice;}
         public DeviceType DataFlow { get; private set; }
@@ -48,6 +50,7 @@ namespace WinAudioAssistant.ViewModels
             {
                 _managedDeviceName = value;
                 _managedDeviceNameChanged = true;
+                PendingChanges = true;
                 OnPropertyChanged(nameof(ManagedDeviceName));
             }
         }
@@ -57,6 +60,7 @@ namespace WinAudioAssistant.ViewModels
             set
             {
                 _managedDeviceEndpointInfo = value;
+                PendingChanges = true;
                 if (!_managedDeviceNameChanged)
                 {
                     _managedDeviceName = value?.Device_DeviceDesc ?? string.Empty;
@@ -76,6 +80,7 @@ namespace WinAudioAssistant.ViewModels
             set
             {
                 _managedDeviceIentificationMethod = value.Value;
+                PendingChanges = true;
                 OnPropertyChanged(nameof(ManagedDeviceIdentificationMethod));
                 OnPropertyChanged(nameof(ShowCustomIdentificationFlags));
             }
@@ -126,16 +131,18 @@ namespace WinAudioAssistant.ViewModels
         {
             // When an endpoint list filter checkbox is toggled, or when the list of unpoints is updated, update the filtered list of endpoints
             EndpointListFilter.PropertyChanged += (_, _) => UpdateFilteredEndpoints();
+            ManagedDeviceCustomIdentificationFlags.PropertyChanged += (_, _) => PendingChanges = true;
             SystemEventsHandler.UpdatedCachedEndpointsEvent += (_, _) => UpdateFilteredEndpoints();
 
-            UpdateFilteredEndpoints();
             _initialized = true;
+            UpdateFilteredEndpoints();
             OnPropertyChanged(string.Empty); // Refreshes all properties
         }
 
         private void UpdateFilteredEndpoints()
         {
             // Note: _initialized could be true or false at this time
+            if (!_initialized) return;
 
             // Generate a new filtered list of endpoints
             var filtered = App.AudioEndpointManager.CachedEndpoints
@@ -143,14 +150,15 @@ namespace WinAudioAssistant.ViewModels
                 .ToList();
 
             // These three steps must be performed in this order, or else things break.
-            // Step 1: Put the currently selected endpoint at the top of the list, moving it if it already exists
+            // Step 1: Put the currently selected endpoint at the top of the new list, moving it if it already exists
             if (_managedDeviceEndpointInfo != null)
             {
                 filtered.Remove(_managedDeviceEndpointInfo.Value);
                 filtered.Insert(0, _managedDeviceEndpointInfo.Value);
             }
 
-            // Step 2: Update the filtered list with the new contents
+            // Step 2: Replace the main list with the new list contents
+            var previouslyPendingChanges = PendingChanges;
             _filteredEndpoints.Clear();
             foreach (var item in filtered)
             {
@@ -158,8 +166,10 @@ namespace WinAudioAssistant.ViewModels
             }
 
             // Step 3: Re-select the endpoint.
-            // Even if there was no previous selection, this will select the first item in the list.
+            // If there was no previous selection, we'll select the first item in the list anyway.
             if (_filteredEndpoints.Count > 0) ManagedDeviceEndpointInfo = _filteredEndpoints[0];
+            // But we don't want this to affect the state of PendingChanges
+            PendingChanges = previouslyPendingChanges;
         }
 
         public void RefreshDevices(object? parameter)
@@ -190,6 +200,10 @@ namespace WinAudioAssistant.ViewModels
                 _managedDevice.IdentificationMethod = _managedDeviceIentificationMethod;
                 _managedDevice.CustomIdentificationFlags = _managedDeviceCustomIdentificationFlags.Value & AvailableCustomIdentificationFlags;
                 App.UserSettings.AddManagedDevice(_managedDevice, IsComms);
+                Debug.Assert(App.DevicePriorityViewModel is DevicePriorityViewModel);
+                if (App.DevicePriorityViewModel is DevicePriorityViewModel viewModel)
+                    viewModel.PendingChanges = true;
+                PendingChanges = false;
                 return true;
             }
             else
@@ -201,6 +215,10 @@ namespace WinAudioAssistant.ViewModels
                     _managedDevice.SetEndpoint(_managedDeviceEndpointInfo.Value);
                     _managedDevice.IdentificationMethod = _managedDeviceIentificationMethod;
                     _managedDevice.CustomIdentificationFlags = _managedDeviceCustomIdentificationFlags.Value & AvailableCustomIdentificationFlags;
+                    Debug.Assert(App.DevicePriorityViewModel is DevicePriorityViewModel);
+                    if (App.DevicePriorityViewModel is DevicePriorityViewModel viewModel)
+                        viewModel.PendingChanges = true;
+                    PendingChanges = false;
                     return true;
                 }
                 else
@@ -221,7 +239,18 @@ namespace WinAudioAssistant.ViewModels
 
         public override bool Discard() { return true; }
 
-        public override bool ShouldClose() { return true; }
+        public override bool ShouldClose()
+        {
+            if (PendingChanges)
+            {
+                MessageBoxResult messageBoxResult = MessageBox.Show("You have unsaved changes. Are you sure you want to close this window?", "Unsaved Changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (messageBoxResult == MessageBoxResult.Yes)
+                    PendingChanges = false;
+                else
+                    return false;
+            }
+            return true;
+        }
 
         public override void Cleanup()
         {
@@ -234,6 +263,7 @@ namespace WinAudioAssistant.ViewModels
             _initialized = false;
 
             EndpointListFilter.PropertyChanged -= (_, _) => UpdateFilteredEndpoints();
+            ManagedDeviceCustomIdentificationFlags.PropertyChanged -= (_, _) => PendingChanges = true;
             SystemEventsHandler.UpdatedCachedEndpointsEvent -= (_, _) => UpdateFilteredEndpoints();
         }
     }
