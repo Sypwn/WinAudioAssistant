@@ -1,14 +1,8 @@
 ﻿using System.Diagnostics;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using AudioSwitcher.AudioApi;
 using WinAudioAssistant.ViewModels;
 
@@ -19,7 +13,10 @@ namespace WinAudioAssistant.Views
     /// </summary>
     public partial class DevicePriorityView : BaseView
     {
-        public override void InitializeViewComponent() => InitializeComponent();
+        /// <summary>
+        /// Initializes the view.
+        /// Assigns a ListBoxTag to each ListBox.
+        /// </summary>
         public DevicePriorityView()
         {
             Debug.Assert(DataContext is DevicePriorityViewModel);
@@ -37,24 +34,27 @@ namespace WinAudioAssistant.Views
             CommsInputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Capture, IsComms = true };
         }
 
+        public override void InitializeViewComponent() => InitializeComponent(); // Required to allow BaseView to call InitializeComponent()
+
+        /// <summary>
+        /// When SeparateCommsPriority is checked, expand the height of the window to show the Comms priority listbox.
+        /// </summary>
         private void SeparateCommsPriorityCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             Height += MainGrid.RowDefinitions[1].ActualHeight + OutputPriorityListBox.ActualHeight;
         }
 
+        /// <summary>
+        /// When SeparateCommsPriority is unchecked, shrink the height of the window to hide the Comms priority listbox.
+        /// </summary>
         private void SeparateCommsPriorityCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             Height -= MainGrid.RowDefinitions[1].ActualHeight + OutputPriorityListBox.ActualHeight;
         }
 
-
-        private void PriorityListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            Debug.Assert(DataContext is DevicePriorityViewModel);
-            if (DataContext is DevicePriorityViewModel viewModel)
-                viewModel.PriorityListBox_SelectionChanged(sender, e);
-        }
-
+        /// <summary>
+        /// When empty space is clicked in a listbox, clear the selection.
+        /// </summary>
         private void PriorityListBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Debug.Assert(sender is ListBox);
@@ -67,6 +67,9 @@ namespace WinAudioAssistant.Views
             }
         }
 
+        /// <summary>
+        /// When a listbox item is double-clicked, execute the EditDeviceCommand in the ViewModel, if valid.
+        /// </summary>
         private void PriorityListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             Debug.Assert(DataContext is DevicePriorityViewModel);
@@ -74,6 +77,19 @@ namespace WinAudioAssistant.Views
                 viewModel.EditDeviceCommand.Execute(null);
         }
 
+        /// <summary>
+        /// When a listbox selection is changed, forward the event to the ViewModel.
+        /// </summary>
+        private void PriorityListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Debug.Assert(DataContext is DevicePriorityViewModel);
+            if (DataContext is DevicePriorityViewModel viewModel)
+                viewModel.PriorityListBox_SelectionChanged(sender, e);
+        }
+
+        /// <summary>
+        /// When the context menu is opening, forward the event to the ViewModel.
+        /// </summary>
         private void PriorityListBox_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             Debug.Assert(DataContext is DevicePriorityViewModel);

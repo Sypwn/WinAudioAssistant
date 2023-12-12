@@ -1,17 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using WinAudioAssistant.ViewModels;
 using WinAudioAssistant.Models;
 
@@ -22,7 +10,11 @@ namespace WinAudioAssistant.Views
     /// </summary>
     public partial class EditDeviceView : BaseView
     {
-        public override void InitializeViewComponent() => InitializeComponent();
+        /// <summary>
+        /// Initializes the view.
+        /// Populates the DeviceIdentificationMethods list.
+        /// Sets the available custom identification flags.
+        /// </summary>
         public EditDeviceView()
         {
             Debug.Assert(DataContext is EditDeviceViewModel);
@@ -60,9 +52,14 @@ namespace WinAudioAssistant.Views
             }
         }
 
+        public override void InitializeViewComponent() => InitializeComponent(); // Required to allow BaseView to call InitializeComponent()
+
+        /// <summary>
+        /// When the window layout changes, re-enable SizeToContent.Height.
+        /// This effectively locks the window height to the content height, while allowing the width to be resized.
+        /// </summary>
         private void Window_LayoutUpdated(object sender, EventArgs e)
         {
-            // Lock the window height to the content height
             SizeToContent = SizeToContent.Height;
         }
     }

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
@@ -19,75 +14,25 @@ namespace WinAudioAssistant.Models
     /// </summary>
     public partial class IconManager
     {
-        private readonly Dictionary<string, Icon> _iconCache = new(); // This is probably not necessary to keep
-        private readonly Dictionary<string, BitmapSource> _bitmapCache = new();
-        private readonly Icon _notFoundIcon;
-        private readonly BitmapSource _notFoundBitmap;
-        [GeneratedRegex(@"^(.+),(-?\d+)$")] // Matches a string that has an icon index/resourceid at the end.
-        private static partial Regex IconPathPattern();
-
+        #region Constructors
+        /// <summary>
+        /// Initializes the IconManager and loads the generic icon.
+        /// </summary>
         public IconManager()
         {
             _notFoundIcon = GetIconFromResourcePath("Resources/Icons/MissingFile.ico");
             _notFoundBitmap = GetBitmapFromResourcePath("Resources/Icons/MissingFile.ico");
         }
-        
-        /// <summary>
-        /// Converts an Icon into a BitmapSource for use in WPF.
-        /// </summary>
-        private static BitmapSource ConvertIconToBitmapSource(Icon icon)
-        {
-            return Imaging.CreateBitmapSourceFromHIcon(icon.Handle,Int32Rect.Empty,BitmapSizeOptions.FromWidthAndHeight(EditDeviceViewModel.IconSize, EditDeviceViewModel.IconSize));
-        }
+        #endregion
 
-        /// <summary>
-        /// Attempts to fetch an icon from the file system and cache it as both an Icon and a BitmapSource.
-        /// </summary>
-        /// <param name="iconPath">Path to the icon file. Can include an icon index or resource identifier 
-        /// at the end of the string separated by a comma, or simply a path to an .ico file.</param>
-        /// <returns>True if successful</returns>
-        private bool CacheFromIconPath(string iconPath)
-        {
-            Icon? icon;
-            Match match = IconPathPattern().Match(iconPath);
-            try
-            {
-                if (match.Success)
-                    icon = Icon.ExtractIcon(match.Groups[1].Value, int.Parse(match.Groups[2].Value));
-                else
-                    icon = Icon.ExtractIcon(iconPath, 0);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+        #region Private Fields
+        private readonly Dictionary<string, Icon> _iconCache = new(); // Cache of Icon references. This is probably not necessary to keep
+        private readonly Dictionary<string, BitmapSource> _bitmapCache = new(); // Cache of BitmapSource references
+        private readonly Icon _notFoundIcon; // Generic icon that is returned when an icon path is not found
+        private readonly BitmapSource _notFoundBitmap; // Generic bitmap that is returned when an icon path is not found
+        #endregion
 
-            if (icon is null) return false;
-            _iconCache[iconPath] = icon; // NOTE: If we decide not to cache the icons in the future, we must add a call
-                                         // to icon.Dispose() after, or else the BitmapSource will keep it active with a reference.
-            _bitmapCache[iconPath] = ConvertIconToBitmapSource(icon);
-            return true;
-        }
-
-        /// <summary>
-        /// Fetches an icon from the application resource and caches it as both an Icon and a BitmapSource.
-        /// Will throw error if icon is not found.
-        /// </summary>
-        /// <param name="resourcePath">Path to the icon file.</param>
-        private void CacheFromIconResource(string resourcePath)
-        {
-            Uri resourceUri = new Uri(resourcePath, UriKind.Relative);
-            StreamResourceInfo streamInfo = App.GetResourceStream(resourceUri);
-
-            if (streamInfo is null)
-                throw new FileNotFoundException("Resource not found", resourcePath);
-
-            using Stream stream = streamInfo.Stream;
-            Icon icon = new(stream);
-            _iconCache[resourcePath] = icon;
-            _bitmapCache[resourcePath] = ConvertIconToBitmapSource(icon);
-        }
-
+        #region Public Methods
         /// <summary>
         /// Fetches an icon from the cache or file system and returns it as an Icon.
         /// </summary>
@@ -155,7 +100,64 @@ namespace WinAudioAssistant.Models
             CacheFromIconResource(resourcePath);
             return _bitmapCache[resourcePath];
         }
+        #endregion
 
+        #region Private Methods
+        /// <summary>
+        /// Returns a compile-time generated regex instance that matches a string with an icon index/resourceid at the end.
+        /// </summary>
+        [GeneratedRegex(@"^(.+),(-?\d+)$")]
+        private static partial Regex IconPathPattern();
 
+        /// <summary>
+        /// Converts an Icon into a BitmapSource for use in WPF elements.
+        /// </summary>
+        private static BitmapSource ConvertIconToBitmapSource(Icon icon)
+            => Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromWidthAndHeight(EditDeviceViewModel.IconSize, EditDeviceViewModel.IconSize));
+
+        /// <summary>
+        /// Attempts to fetch an icon from the file system and cache it as both an Icon and a BitmapSource.
+        /// </summary>
+        /// <param name="iconPath">Path to the icon file. Can include an icon index or resource identifier 
+        /// at the end of the string separated by a comma, or simply a path to an .ico file.</param>
+        /// <returns>True if successful</returns>
+        private bool CacheFromIconPath(string iconPath)
+        {
+            Icon? icon;
+            Match match = IconPathPattern().Match(iconPath);
+            try
+            {
+                if (match.Success)
+                    icon = Icon.ExtractIcon(match.Groups[1].Value, int.Parse(match.Groups[2].Value));
+                else
+                    icon = Icon.ExtractIcon(iconPath, 0);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            if (icon is null) return false;
+            _iconCache[iconPath] = icon; // NOTE: If we decide not to cache the icons in the future, we must add a call
+                                         // to icon.Dispose() after, or else the BitmapSource will keep it active with a reference.
+            _bitmapCache[iconPath] = ConvertIconToBitmapSource(icon);
+            return true;
+        }
+
+        /// <summary>
+        /// Fetches an icon from the application resource and caches it as both an Icon and a BitmapSource.
+        /// Will throw error if icon is not found.
+        /// </summary>
+        /// <param name="resourcePath">Path to the resource.</param>
+        private void CacheFromIconResource(string resourcePath)
+        {
+            Uri resourceUri = new(resourcePath, UriKind.Relative);
+            StreamResourceInfo streamInfo = App.GetResourceStream(resourceUri) ?? throw new FileNotFoundException("Resource not found", resourcePath);
+            using Stream stream = streamInfo.Stream;
+            Icon icon = new(stream);
+            _iconCache[resourcePath] = icon;
+            _bitmapCache[resourcePath] = ConvertIconToBitmapSource(icon);
+        }
+        #endregion
     }
 }

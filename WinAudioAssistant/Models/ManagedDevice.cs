@@ -1,52 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using AudioSwitcher.AudioApi;
 
 namespace WinAudioAssistant.Models
 {
+    /// <summary>
+    /// Base class for a managed audio device. These are what the user configures in the UI.
+    /// It is effectively a wrapper for an AudioEndpointInfo, but with configurable properties and methods to locate a fitting active endpoint,
+    /// even one whose GUID does not match exactly.
+    /// </summary>
     public abstract class ManagedDevice
     {
-        public enum IdentificationMethods
-        {
-            Strict,
-            Loose,
-            Custom,
-        }
+        #region Properties
+        public AudioEndpointInfo EndpointInfo { get; protected set; } // Contains the known properties of the intended endpoint, used to compare against active endpoints
+        public string Name { get; set; } = ""; // User configured name for this managed device
+        public bool Enabled { get; set; } = true; // Allows the user to disable this managed device without deleting it
+        public IdentificationMethods IdentificationMethod { get; set; } = IdentificationMethods.Loose; // General setting for how the managed device is matched to an active endpoint
+        public IdentificationFlags CustomIdentificationFlags { get; set; } = IdentificationFlags.Loose; // When IdentificationMethod is set to Custom, these flags determine which properties are checked
+        #endregion
 
-        [Flags]
-        public enum IdentificationFlags
-        {
-            AudioEndpoint_GUID = 1 << 0,
-            AudioEndpoint_FormFactor = 1 << 1,
-            AudioEndpoint_JackSubType = 1 << 2,
-            Device_ContainerId = 1 << 3,
-            Device_DeviceDesc = 1 << 4,
-            DeviceClass_IconPath = 1 << 5,
-            DeviceInterface_FriendlyName = 1 << 6,
-            HostDeviceDesc = 1 << 7,
-
-            None = 0,
-            Strict = AudioEndpoint_GUID,
-            Loose = HostDeviceDesc | AudioEndpoint_FormFactor,
-        }
-
-        public string Name { get; set; } = "";
-        public AudioEndpointInfo EndpointInfo { get; protected set; }
-        public bool Enabled = true;
-        public IdentificationMethods IdentificationMethod { get; set; } = IdentificationMethods.Loose;
-        public IdentificationFlags CustomIdentificationFlags { get; set; } = IdentificationFlags.Loose;
-
+        #region Public Methods
+        /// <summary>
+        /// Gets the DataFlow/DeviceType of this managed device, as determined by the derived class.
+        /// </summary>
+        /// <returns>DeviceType.Capture or DeviceType.Playback</returns>
         public abstract DeviceType DataFlow();
+
+        /// <summary>
+        /// Updates the EndpointInfo property with the given AudioEndpointInfo, while first verifying that the DataFlow matches.
+        /// </summary>
+        /// <param name="endpointInfo">New AudioEndpointInfo for this managed device.</param>
         public abstract void SetEndpoint(AudioEndpointInfo endpointInfo);
 
         /// <summary>
         /// The device checks if it should be active, and if there is a matching endpoint in the cache.
         /// </summary>
-        /// <returns>Matching endpointInfo if it should be active, null if not.</returns>
+        /// <returns>AudioEndpointInfo for a matching active endpoint if it finds one, otherwise null.</returns>
         public AudioEndpointInfo? CheckShouldBeActive()
         {
             if (!Enabled) return null;
@@ -79,8 +67,46 @@ namespace WinAudioAssistant.Models
 
             return null;
         }
+        #endregion
+
+        #region Internal Types
+        /// <summary>
+        /// Generic configurable techniques for matching an endpoint to this managed device.
+        /// </summary>
+        public enum IdentificationMethods
+        {
+            Strict,
+            Loose,
+            Custom,
+        }
+
+        /// <summary>
+        /// Bit flags used to determine which AudioEndpointInfo properties to use when matching an endpoint to this managed device.
+        /// The "Strict" and "Loose" flags determine which properties are checked for the respective IdentificationMethods.
+        /// </summary>
+        [Flags]
+        public enum IdentificationFlags
+        {
+            AudioEndpoint_GUID = 1 << 0,
+            AudioEndpoint_FormFactor = 1 << 1,
+            AudioEndpoint_JackSubType = 1 << 2,
+            Device_ContainerId = 1 << 3,
+            Device_DeviceDesc = 1 << 4,
+            DeviceClass_IconPath = 1 << 5,
+            DeviceInterface_FriendlyName = 1 << 6,
+            HostDeviceDesc = 1 << 7,
+
+            None = 0,
+            Strict = AudioEndpoint_GUID,
+            Loose = HostDeviceDesc | AudioEndpoint_FormFactor,
+        }
+        #endregion
     }
 
+    /// <summary>
+    /// Managed device that is explicitly a capture/input device.
+    /// Derived classes are used to better ensure that capture and playback devices are never internally mixed up.
+    /// </summary>
     public class ManagedInputDevice : ManagedDevice
     {
         public ManagedInputDevice(AudioEndpointInfo endpointInfo)
@@ -89,6 +115,7 @@ namespace WinAudioAssistant.Models
             EndpointInfo = endpointInfo;
         }
 
+        /// <inheritdoc/>
         public override DeviceType DataFlow() => DeviceType.Capture;
 
         public override void SetEndpoint(AudioEndpointInfo endpointInfo)
@@ -98,6 +125,10 @@ namespace WinAudioAssistant.Models
         }
     }
 
+    /// <summary>
+    /// Managed device that is explicitly a playback/output device.
+    /// Derived classes are used to better ensure that capture and playback devices are never internally mixed up.
+    /// </summary>
     public class ManagedOutputDevice : ManagedDevice
     {
         public ManagedOutputDevice(AudioEndpointInfo endpointInfo)
@@ -106,6 +137,7 @@ namespace WinAudioAssistant.Models
             EndpointInfo = endpointInfo;
         }
 
+        /// <inheritdoc/>
         public override DeviceType DataFlow() => DeviceType.Playback;
 
         public override void SetEndpoint(AudioEndpointInfo endpointInfo)

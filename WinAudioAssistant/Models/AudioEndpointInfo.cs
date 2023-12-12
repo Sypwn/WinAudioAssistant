@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using AudioSwitcher.AudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
@@ -12,54 +7,22 @@ using Newtonsoft.Json;
 
 namespace WinAudioAssistant.Models
 {
-    public enum EndpointFormFactor
-    {
-        RemoteNetworkDevice = 0,
-        Speakers = 1,
-        LineLevel = 2,
-        Headphones = 3,
-        Microphone = 4,
-        Headset = 5,
-        Handset = 6,
-        UnknownDigitalPassthrough = 7,
-        SPDIF = 8,
-        DigitalAudioDisplayDevice = 9,
-        UnknownFormFactor = 10,
-    }
-
+    /// <summary>
+    /// Contains a selection of properties for an audio endpoint, and methods to collect and update them.
+    /// </summary>
     public struct AudioEndpointInfo
     {
-        public readonly DeviceType DataFlow { get; }
-        public readonly Guid AudioEndpoint_GUID { get; } // Globally unique to this endpoint
-        [JsonIgnore]
-        public DeviceState? DeviceState { get; private set;}
-        public EndpointFormFactor? AudioEndpoint_FormFactor { get; private set; } // Speakers, headphones, headset, SPDIF, etc.
-        public Guid? AudioEndpoint_JackSubType { get; private set; } // Contains a GUID for a type of jack, more specific than FormFactor
-        public Guid? Device_ContainerId { get; private set; } // Perhaps points to the parent device? Not populated for virtual devices
-        public string? Device_DeviceDesc { get; private set; } // The endpoint's name, which can be changed in the control panel
-        public string? DeviceClass_IconPath { get; private set; }
-        public string? DeviceInterface_FriendlyName { get; private set; } // Set by the driver, but may have a different value if there are duplicate devices
-        public string? HostDeviceDesc { get; private set; } // (Actual property name unkown) Appears to be the name of the host device. Usually same as DeviceInterface_FriendlyName, but more consistent.
-        // REMINDER: Add new properties to deserialization constructor, and UpdateFromDevice(), and ManagedDevice.IdentificationFlags, and...
-
-        [JsonIgnore]
-        public readonly Guid Guid => AudioEndpoint_GUID;
-        [JsonIgnore]
-        public readonly string RealId => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}";
-        [JsonIgnore]
-        public readonly Icon Icon => App.IconManager.GetIconFromIconPath(DeviceClass_IconPath);
-        [JsonIgnore]
-        public readonly BitmapSource IconBitmap => App.IconManager.GetBitmapFromIconPath(DeviceClass_IconPath);
-
+        #region Constructors
         /// <summary>
         /// Deserialization constructor.
         /// Use named arguments for optional parameters. The order of arguments may change in the future.
+        /// At minimum, an AudioEndpointInfo must have a DataFlow and AudioEndpoint_GUID. The rest may be populated later using UpdateFromSystem().
         /// </summary>
         [JsonConstructor]
         public AudioEndpointInfo(DeviceType dataFlow,
                                  Guid audioEndpoint_GUID,
                                  DeviceState? deviceState = null,
-                                 EndpointFormFactor? audioEndpoint_FormFactor = null,
+                                 FormFactorType? audioEndpoint_FormFactor = null,
                                  Guid? audioEndpoint_JackSubType = null,
                                  Guid? device_ContainerId = null,
                                  string? device_DeviceDesc = null,
@@ -80,6 +43,10 @@ namespace WinAudioAssistant.Models
             HostDeviceDesc = hostDeviceDesc;
         }
 
+        /// <summary>
+        /// Collects the properties of a CoreAudioDevice to create an AudioEndpointInfo.
+        /// </summary>
+        /// <param name="device">CoreAudioDevice whose properties should be collected.</param>
         public AudioEndpointInfo(CoreAudioDevice device)
         {
             Trace.Assert(device.DeviceType != DeviceType.All, "AudioEndpointInfo created with DeviceType.All");
@@ -88,7 +55,36 @@ namespace WinAudioAssistant.Models
             Debug.Assert(AudioEndpoint_GUID != Guid.Empty, "AudioEndpointInfo created with empty GUID");
             UpdateFromDevice(device);
         }
+        #endregion
 
+        #region Endpoint Properties
+        // These fields describe the endpoint. Most are populated from the device's (usually static) properties, DeviceState being the exception.
+        public readonly DeviceType DataFlow { get; } // Capture (input) or playback (output)
+        public readonly Guid AudioEndpoint_GUID { get; } // Globally unique to this endpoint, created by Windows when it is first connected
+        [JsonIgnore]
+        public DeviceState? DeviceState { get; private set;} // Active, unplugged, disabled, not present
+        public FormFactorType? AudioEndpoint_FormFactor { get; private set; } // Speakers, headphones, headset, SPDIF, etc.
+        public Guid? AudioEndpoint_JackSubType { get; private set; } // Contains a GUID for a type of jack, more specific than FormFactor
+        public Guid? Device_ContainerId { get; private set; } // Perhaps points to the parent device? Not populated for virtual devices
+        public string? Device_DeviceDesc { get; private set; } // The endpoint's name, which can be changed in the control panel
+        public string? DeviceClass_IconPath { get; private set; } // Path to the icon for the endpoint's device class. Usually includes a resource identifier
+        public string? DeviceInterface_FriendlyName { get; private set; } // Set by the driver, but may have a different value if there are duplicate devices
+        public string? HostDeviceDesc { get; private set; } // (Actual property name unkown) Appears to be the name of the host device. Usually same as DeviceInterface_FriendlyName, but more consistent.
+                                                            // REMINDER: Add new properties to deserialization constructor, and UpdateFromDevice(), and ManagedDevice.IdentificationFlags, and...
+        #endregion
+
+        #region Other Properties
+        [JsonIgnore]
+        public readonly Guid Guid => AudioEndpoint_GUID;
+        [JsonIgnore]
+        public readonly string RealId => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}";
+        [JsonIgnore]
+        public readonly Icon Icon => App.IconManager.GetIconFromIconPath(DeviceClass_IconPath);
+        [JsonIgnore]
+        public readonly BitmapSource IconBitmap => App.IconManager.GetBitmapFromIconPath(DeviceClass_IconPath);
+        #endregion
+
+        #region Public Methods
         /// <summary>
         /// Populate or refresh the properties of this AudioEndpointInfo from the system.
         /// </summary>
@@ -96,7 +92,7 @@ namespace WinAudioAssistant.Models
         public bool UpdateFromSystem()
         {
             var device = App.CoreAudioController.GetDevice(AudioEndpoint_GUID);
-            if (device?.Properties[propertyKeys.AudioEndpoint_GUID] is Guid guid && guid == AudioEndpoint_GUID)
+            if (device?.Properties[PropertyKeys.AudioEndpoint_GUID] is Guid guid && guid == AudioEndpoint_GUID)
             {
                 UpdateFromDevice(device);
                 return true;
@@ -107,27 +103,55 @@ namespace WinAudioAssistant.Models
             }
         }
 
+        /// <summary>
+        /// Populate or refresh the properties of this AudioEndpointInfo from a CoreAudioDevice.
+        /// </summary>
+        /// <param name="device">CoreAudioDevice whose properties should be collected. The DataFlow and Endpoint GUID must match the existing info.</param>
         public void UpdateFromDevice(CoreAudioDevice device)
         {
             DeviceState = device.State;
-            if (device.Properties[propertyKeys.AudioEndpoint_FormFactor] is uint formFactor)
-                AudioEndpoint_FormFactor = (EndpointFormFactor)formFactor;
-            if (Guid.TryParse(device.Properties[propertyKeys.AudioEndpoint_JackSubType] as string, out var jackSubType))
+            if (device.Properties[PropertyKeys.AudioEndpoint_FormFactor] is uint formFactor)
+                AudioEndpoint_FormFactor = (FormFactorType)formFactor;
+            if (Guid.TryParse(device.Properties[PropertyKeys.AudioEndpoint_JackSubType] as string, out var jackSubType)) // CoreAudioApi outputs this GUID as a string for some reason
                 AudioEndpoint_JackSubType = jackSubType;
-            if (device.Properties[propertyKeys.Device_ContainerId] is Guid containerId &&
+            if (device.Properties[PropertyKeys.Device_ContainerId] is Guid containerId &&
                 containerId != new Guid(0x0, 0x0, 0x0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff))
+                // Devices that don't have a valid container (mainly virtual devices) have {00000000-0000-0000-FFFF-FFFFFFFFFFFF} instead of an empty GUID.
                 Device_ContainerId = containerId;
-            if (device.Properties[propertyKeys.Device_DeviceDesc]    is string deviceDesc)
+            if (device.Properties[PropertyKeys.Device_DeviceDesc] is string deviceDesc)
                 Device_DeviceDesc = deviceDesc;
-            if (device.Properties[propertyKeys.DeviceClass_IconPath] is string iconPath)
+            if (device.Properties[PropertyKeys.DeviceClass_IconPath] is string iconPath)
                 DeviceClass_IconPath = iconPath;
-            if (device.Properties[propertyKeys.DeviceInterface_FriendlyName] is string friendlyName)
+            if (device.Properties[PropertyKeys.DeviceInterface_FriendlyName] is string friendlyName)
                 DeviceInterface_FriendlyName = friendlyName;
-            if (device.Properties[propertyKeys.HostDeviceDesc] is string hostDeviceDesc)
+            if (device.Properties[PropertyKeys.HostDeviceDesc] is string hostDeviceDesc)
                 HostDeviceDesc = hostDeviceDesc;
         }
+        #endregion
 
-        private static class propertyKeys
+        #region Internal Types
+        /// <summary>
+        /// Endpoint form factors as defined in MMDEVICEAPI.H in Windows SDK
+        /// </summary>
+        public enum FormFactorType
+        {
+            RemoteNetworkDevice = 0,
+            Speakers = 1,
+            LineLevel = 2,
+            Headphones = 3,
+            Microphone = 4,
+            Headset = 5,
+            Handset = 6,
+            UnknownDigitalPassthrough = 7,
+            SPDIF = 8,
+            DigitalAudioDisplayDevice = 9,
+            UnknownFormFactor = 10,
+        }
+
+        /// <summary>
+        /// Contains the Windows property keys for each property in AudioEndpointInfo.
+        /// </summary>
+        private static class PropertyKeys
         {
             internal static readonly PropertyKey AudioEndpoint_GUID = new(new Guid(0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e), 4);
             internal static readonly PropertyKey AudioEndpoint_FormFactor = new(new Guid(0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e), 0);
@@ -138,8 +162,6 @@ namespace WinAudioAssistant.Models
             internal static readonly PropertyKey DeviceInterface_FriendlyName = new(new Guid(0x026e516e, 0xb814, 0x414b, 0x83, 0xcd, 0x85, 0x6d, 0x6f, 0xef, 0x48, 0x22), 2);
             internal static readonly PropertyKey HostDeviceDesc = new(new Guid(0xb3f8fa53, 0x0004, 0x438e, 0x90, 0x03, 0x51, 0xa4, 0x6e, 0x13, 0x9b, 0xfc), 6);
         }
-
+        #endregion
     }
-
-
 }

@@ -1,21 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using AudioSwitcher.AudioApi.CoreAudio;
 
 namespace WinAudioAssistant.Models
 {
     /// <summary>
-    /// Maintains the lists of managed devices.
+    /// Maintains the lists of managed devices, as well as the method to update the system default devices based on those lists.
     /// </summary>
     public class ManagedDeviceManager
     {
+        #region Constructors
+        /// <summary>
+        /// Initializes the ManagedDeviceManager.
+        /// </summary>
+        public ManagedDeviceManager()
+        {
+            _readOnlyInputDevices = new ReadOnlyObservableCollection<ManagedInputDevice>(_inputDevices);
+            _readOnlyOutputDevices = new ReadOnlyObservableCollection<ManagedOutputDevice>(_outputDevices);
+            _readOnlyCommsInputDevices = new ReadOnlyObservableCollection<ManagedInputDevice>(_commsInputDevices);
+            _readOnlyCommsOutputDevices = new ReadOnlyObservableCollection<ManagedOutputDevice>(_commsOutputDevices);
+        }
+        #endregion
+
+        #region Private Fields
         // Internal lists of managed devices
         private readonly ObservableCollection<ManagedInputDevice> _inputDevices = new();
         private readonly ObservableCollection<ManagedOutputDevice> _outputDevices = new();
@@ -27,7 +34,9 @@ namespace WinAudioAssistant.Models
         private readonly ReadOnlyObservableCollection<ManagedOutputDevice> _readOnlyOutputDevices;
         private readonly ReadOnlyObservableCollection<ManagedInputDevice> _readOnlyCommsInputDevices;
         private readonly ReadOnlyObservableCollection<ManagedOutputDevice> _readOnlyCommsOutputDevices;
+        #endregion
 
+        #region Properties
         // Private properties to access the correct lists based on the SeparateCommsPriorityState
         private ObservableCollection<ManagedInputDevice> InputDevices => _inputDevices;
         private ObservableCollection<ManagedOutputDevice> OutputDevices => _outputDevices;
@@ -41,6 +50,10 @@ namespace WinAudioAssistant.Models
         public ReadOnlyObservableCollection<ManagedOutputDevice> ReadOnlyCommsOutputDevices => _separateCommsPriorityState ? _readOnlyCommsOutputDevices : _readOnlyOutputDevices;
 
         private bool _separateCommsPriorityState = true;
+        /// <summary>
+        /// When true, the comms devices are kept separate from the primary devices.
+        /// When false, the comms devices mirror the primary devices.
+        /// </summary>
         public bool SeparateCommsPriorityState
         {
             get => _separateCommsPriorityState;
@@ -63,15 +76,14 @@ namespace WinAudioAssistant.Models
                 }
             }
         }
+        #endregion
 
-        public ManagedDeviceManager()
-        {
-            _readOnlyInputDevices = new ReadOnlyObservableCollection<ManagedInputDevice>(_inputDevices);
-            _readOnlyOutputDevices = new ReadOnlyObservableCollection<ManagedOutputDevice>(_outputDevices);
-            _readOnlyCommsInputDevices = new ReadOnlyObservableCollection<ManagedInputDevice>(_commsInputDevices);
-            _readOnlyCommsOutputDevices = new ReadOnlyObservableCollection<ManagedOutputDevice>(_commsOutputDevices);
-        }
-
+        #region Public Methods
+        /// <summary>
+        /// Adds a managed device to the appropriate list based on its type and the isComms parameter.
+        /// </summary>
+        /// <param name="device">ManagedDevice to add.</param>
+        /// <param name="isComms">True if the device should be added to the appropriate comms list instead of the primary list.</param>
         public void AddDevice(ManagedDevice device, bool isComms)
         {
             if (device is ManagedInputDevice inputDevice)
@@ -92,6 +104,11 @@ namespace WinAudioAssistant.Models
             }
         }
 
+        /// <summary>
+        /// Adds a list of managed devices to the appropriate list based on their type and the isComms parameter.
+        /// </summary>
+        /// <param name="devices">A list of ManagedDevices to add.</param>
+        /// <param name="isComms">True if the managed devices should be added to the appropriate comms list instead of the primary list.</param>
         public void AddDevices(IEnumerable<ManagedDevice> devices, bool isComms)
         {
             foreach (var device in devices)
@@ -100,6 +117,13 @@ namespace WinAudioAssistant.Models
             }
         }
 
+        /// <summary>
+        /// Adds a managed device to the specified index of the appropriate list based on its type and the isComms parameter.
+        /// If the managed device already exists in the list, it is instead moved to the specified index.
+        /// </summary>
+        /// <param name="device">ManagedDevice to add.</param>
+        /// <param name="isComms">True if the managed device should be added to the appropriate comms list instead of the primary list.</param>
+        /// <param name="index">Index to insert or move the managed device to.</param>
         public void AddDeviceAt(ManagedDevice device, bool isComms, int index)
         {
             if (device is ManagedInputDevice inputDevice)
@@ -132,7 +156,11 @@ namespace WinAudioAssistant.Models
             }
         }
 
-
+        /// <summary>
+        /// Removes a managed device from the appropriate list based on its type and the isComms parameter.
+        /// </summary>
+        /// <param name="device">ManagedDevice to remove.</param>
+        /// <param name="isComms">True if the managed device should be removed from the appropriate comms list instead of the primary list.</param>
         public void RemoveDevice(ManagedDevice device, bool isComms)
         {
             if (device is ManagedInputDevice inputDevice)
@@ -157,6 +185,11 @@ namespace WinAudioAssistant.Models
             }
         }
 
+        /// <summary>
+        /// Returns true if the managed device exists in the appropriate list based on its type and the isComms parameter.
+        /// </summary>
+        /// <param name="device">ManagedDevice to remove.</param>
+        /// <param name="isComms">True if the managed device should be removed from the appropriate comms list instead of the primary list.</param>
         public bool HasDevice(ManagedDevice device, bool isComms)
         {
             if (device is ManagedInputDevice inputDevice)
@@ -176,6 +209,9 @@ namespace WinAudioAssistant.Models
             }
         }
 
+        /// <summary>
+        /// Removes all managed devices from all lists, then repopulates them from the given lists.
+        /// </summary>
         public void RepopulateDevices(IEnumerable<ManagedInputDevice>? inputDevices = null, IEnumerable<ManagedOutputDevice>? outputDevices = null,
                                       IEnumerable<ManagedInputDevice>? commsInputDevices = null, IEnumerable<ManagedOutputDevice>? commsOutputDevices = null)
         {
@@ -191,7 +227,7 @@ namespace WinAudioAssistant.Models
         }
 
         /// <summary>
-        /// Updates the default devices for all managed device lists.
+        /// Updates the system default devices for all managed device lists.
         /// </summary>
         public void UpdateDefaultDevices()
         {
@@ -209,7 +245,9 @@ namespace WinAudioAssistant.Models
             if (error)
                 SystemEventsHandler.DispatchUpdateCachedEndpoints();
         }
+        #endregion
 
+        #region Private Methods
         /// <summary>
         /// Iterates through the list of managed devices and sets the first matching device as the default.
         /// </summary>
@@ -257,5 +295,6 @@ namespace WinAudioAssistant.Models
             // No matching devices found
             return true;
         }
+        #endregion
     }
 }

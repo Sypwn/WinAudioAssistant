@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WinAudioAssistant.ViewModels
 {
-    // https://stackoverflow.com/a/49559152
+    /// <summary>
+    /// A wrapper for a flag/bitfield enum that allows binding checkboxes to individual flags.
+    /// </summary>
+    /// <typeparam name="T">A flag enum type.</typeparam>
     public class EnumFlags<T> : INotifyPropertyChanged where T : Enum, IComparable, IFormattable, IConvertible
+    // Copied from https://stackoverflow.com/a/49559152 and slightly modified.
     {
         private T value;
 

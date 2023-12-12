@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AudioSwitcher.AudioApi;
 
 namespace WinAudioAssistant.Models
 {
     /// <summary>
-    /// Maintains a list of active audio endpoints on the system.
+    /// Maintains a cache of active audio endpoints in the system.
     /// </summary>
     public class AudioEndpointManager
     {
-        private ObservableCollection<AudioEndpointInfo> _cachedEndpoints { get; } = new();
-        public ReadOnlyObservableCollection<AudioEndpointInfo> CachedEndpoints => new(_cachedEndpoints);
+        private readonly ObservableCollection<AudioEndpointInfo> _cachedEndpoints = new(); // Private list of cached endpoints
+        public ReadOnlyObservableCollection<AudioEndpointInfo> CachedEndpoints => new(_cachedEndpoints); // Public read-only list of cached endpoints
 
-        // Should only be called by SystemEventsHandler
+        /// <summary>
+        /// Updates the cache of active audio endpoints in the system.
+        /// Should only be called by SystemEventsHandler.
+        /// </summary>
         public void UpdateCachedEndpoints()
         {
             _cachedEndpoints.Clear();
@@ -29,6 +27,7 @@ namespace WinAudioAssistant.Models
 
         /// <summary>
         /// Dump a list of all system audio endpoints to a file.
+        /// Currently unused.
         /// </summary>
         public static void ListAllEndpoints()
         {
