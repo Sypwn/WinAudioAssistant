@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
-using WinAudioAssistant.ViewModels;
+using WinAudioAssistant.Views;
 
 namespace WinAudioAssistant.Models
 {
@@ -113,7 +113,7 @@ namespace WinAudioAssistant.Models
         /// Converts an Icon into a BitmapSource for use in WPF elements.
         /// </summary>
         private static BitmapSource ConvertIconToBitmapSource(Icon icon)
-            => Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromWidthAndHeight(EditDeviceViewModel.IconSize, EditDeviceViewModel.IconSize));
+            => Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromWidthAndHeight(EditDeviceView.IconSize, EditDeviceView.IconSize));
 
         /// <summary>
         /// Attempts to fetch an icon from the file system and cache it as both an Icon and a BitmapSource.

@@ -52,6 +52,7 @@ namespace WinAudioAssistant.Views
             }
         }
 
+        public const int IconSize = 32; // Width and height of the device icon that is used in the endpoint selection combobox
         protected override void InitializeViewComponent() => InitializeComponent(); // Required to allow BaseView to call InitializeComponent()
 
         /// <summary>

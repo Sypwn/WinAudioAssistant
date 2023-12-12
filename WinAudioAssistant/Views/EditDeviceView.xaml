@@ -44,15 +44,7 @@
         <!-- Row 1: Audio endpoint selection -->
         <Border Grid.Row ="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="3">
             <StackPanel>
-                <Grid Margin="5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Audio endpoint device:" Margin="0,0,5,0" VerticalAlignment="Bottom"/>
-                    <Button Grid.Column="1" Content="Refresh" ToolTip="Refresh the list of audio endpoints."
-                            Command="{Binding RefreshDevicesCommand}"/>
-                </Grid>
+                <TextBlock Grid.Column="0" Text="Audio endpoint device:" Margin="5,0,5,5" VerticalAlignment="Bottom"/>
                 <ComboBox Margin="5,0,5,5" ToolTip="Select an audio endpoint to bind to this managed device."
                           ItemsSource="{Binding FilteredEndpoints}" SelectedItem="{Binding ManagedDeviceEndpointInfo}">
                     <ComboBox.ItemTemplate>
@@ -117,7 +109,8 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Endpoint identification method:" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Column="0" Margin="0,0,5,0"
+                               Text="Endpoint identification method:" VerticalAlignment="Center"/>
                     <ComboBox Grid.Column="1" ItemsSource="{Binding ManagedDeviceIdentificationMethods}" SelectedItem="{Binding ManagedDeviceIdentificationMethod}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
