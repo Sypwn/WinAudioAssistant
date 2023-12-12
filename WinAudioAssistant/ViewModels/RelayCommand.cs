@@ -5,22 +5,11 @@ namespace WinAudioAssistant.ViewModels
     /// <summary>
     /// A command whose sole purpose is to relay its functionality to other objects by invoking delegates.
     /// </summary>
-    public class RelayCommand : ICommand
+    public class RelayCommand(Action<object?> execute, Predicate<object?>? canExecute = null) : ICommand
     // AI generated
     {
-        /// <summary>
-        /// Initializes a new instance of the RelayCommand class.
-        /// </summary>
-        /// <param name="execute">The execution logic.</param>
-        /// <param name="canExecute">The execution status logic.</param>
-        public RelayCommand(Action<object?> execute, Predicate<object?>? canExecute = null)
-        {
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-
-        private readonly Action<object?> _execute;
-        private readonly Predicate<object?>? _canExecute;
+        private readonly Action<object?> _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        private readonly Predicate<object?>? _canExecute = canExecute;
 
         /// <summary>
         /// Occurs when changes occur that affect whether or not the command should execute.

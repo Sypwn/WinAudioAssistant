@@ -28,13 +28,13 @@ namespace WinAudioAssistant.Views
             }
 
             // Assign a tag to each ListBox, for use by the ViewModel
-            OutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Playback, IsComms = false };
-            CommsOutputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Playback, IsComms = true };
-            InputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Capture, IsComms = false };
-            CommsInputPriorityListBox.Tag = new ListBoxTag { DataFlow = DeviceType.Capture, IsComms = true };
+            OutputPriorityListBox.Tag = new DevicePriorityViewModel.ListBoxTag { DataFlow = DeviceType.Playback, IsComms = false };
+            CommsOutputPriorityListBox.Tag = new DevicePriorityViewModel.ListBoxTag { DataFlow = DeviceType.Playback, IsComms = true };
+            InputPriorityListBox.Tag = new DevicePriorityViewModel.ListBoxTag { DataFlow = DeviceType.Capture, IsComms = false };
+            CommsInputPriorityListBox.Tag = new DevicePriorityViewModel.ListBoxTag { DataFlow = DeviceType.Capture, IsComms = true };
         }
 
-        public override void InitializeViewComponent() => InitializeComponent(); // Required to allow BaseView to call InitializeComponent()
+        protected override void InitializeViewComponent() => InitializeComponent(); // Required to allow BaseView to call InitializeComponent()
 
         /// <summary>
         /// When SeparateCommsPriority is checked, expand the height of the window to show the Comms priority listbox.

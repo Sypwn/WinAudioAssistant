@@ -9,7 +9,7 @@ namespace WinAudioAssistant.Models
     // The TL;DR is if you call Lookup(guid, id), it will return a PropertyKeyDef struct containing the name of that property key, if that
     // property key's name is known by being listed in the Windows SDK. (Only audio endpoint and some device related properties are included
     // in the table.) There are still a ton of unknown audio related property keys, but I've exhausted my options and patience looking for them.
-    class PropertyKeyDefLookup
+    public static class PropertyKeyDefLookup
     {
         public enum PropertyKeyDefType
         {
@@ -23,6 +23,7 @@ namespace WinAudioAssistant.Models
             public string Name = name;
             public Guid Guid = guid;
             public int Id = id;
+            public readonly string FullName => Type + "_" + Name;
         }
 
         public static PropertyKeyDef? Lookup(Guid guid, int id)

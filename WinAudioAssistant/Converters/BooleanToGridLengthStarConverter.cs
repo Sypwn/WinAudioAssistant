@@ -15,15 +15,10 @@ namespace WinAudioAssistant.Converters
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            
-            if (value is bool && (bool)value)
-            {
-                return new System.Windows.GridLength(1, System.Windows.GridUnitType.Star);
-            }
-            else
-            {
-                return new System.Windows.GridLength(0);
-            }
+
+            return value is bool boolValue && boolValue
+                ? new System.Windows.GridLength(1, System.Windows.GridUnitType.Star)
+                : (object)new System.Windows.GridLength(0);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

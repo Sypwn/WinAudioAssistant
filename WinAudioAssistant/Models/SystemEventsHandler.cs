@@ -18,17 +18,15 @@ namespace WinAudioAssistant.Models
         private static DispatcherOperation? _activeDispatchOperation; // The reference to the operation that is currently pending
         #endregion
 
-        #region Public Properties
-        public delegate void UpdatedDefaultDevicesEventHandler(object? sender, EventArgs e);
+        #region Events
         /// <summary>
         /// Raised after the system default audio devices are updated.
         /// </summary>
-        public static event UpdatedDefaultDevicesEventHandler? UpdatedDefaultDevicesEvent;
-        public delegate void UpdatedCachedEndpointsEventHandler(object? sender, EventArgs e);
+        public static event EventHandler? UpdatedDefaultDevicesEvent;
         /// <summary>
         /// Raised after the cached audio endpoints are updated.
         /// </summary>
-        public static event UpdatedCachedEndpointsEventHandler? UpdatedCachedEndpointsEvent;
+        public static event EventHandler? UpdatedCachedEndpointsEvent;
         #endregion
 
         #region Public Methods
@@ -38,10 +36,16 @@ namespace WinAudioAssistant.Models
         /// </summary>
         public static void RegisterAllEvents()
         {
-            // Startiing with a UpdateCachedEndpointsAction dispatch ensures these fields aren't null during Dispatch...() calls, which saves a null check
-            _activeDispatchOperation = App.Current.Dispatcher.BeginInvoke(UpdateCachedEndpointsAction);
-            _activeDispatchAction = DispatchAction.UpdateCachedEndpoints;
-            _ready = true;
+            Debug.Assert(!_ready); // This should only be called once
+            if (_ready)
+                return;
+            lock (_activeDispatchLock)
+            {
+                // Startiing with a UpdateCachedEndpointsAction dispatch ensures these fields aren't null during Dispatch...() calls, which saves a null check
+                _activeDispatchOperation = App.Current.Dispatcher.BeginInvoke(UpdateCachedEndpointsAction);
+                _activeDispatchAction = DispatchAction.UpdateCachedEndpoints;
+                _ready = true;
+            }
 
             RegisterAudioDeviceEvents();
             RegisterHardwareEvents();

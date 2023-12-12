@@ -49,10 +49,12 @@ namespace WinAudioAssistant.Models
         /// <param name="device">CoreAudioDevice whose properties should be collected.</param>
         public AudioEndpointInfo(CoreAudioDevice device)
         {
-            Trace.Assert(device.DeviceType != DeviceType.All, "AudioEndpointInfo created with DeviceType.All");
+            if (device.DeviceType == DeviceType.All)
+                throw new ArgumentException("Invalid device type", nameof(device));
+            if (device.Id == Guid.Empty)
+                throw new ArgumentException("Invalid device GUID", nameof(device));
             DataFlow = device.DeviceType;
             AudioEndpoint_GUID = device.Id;
-            Debug.Assert(AudioEndpoint_GUID != Guid.Empty, "AudioEndpointInfo created with empty GUID");
             UpdateFromDevice(device);
         }
         #endregion
@@ -74,10 +76,8 @@ namespace WinAudioAssistant.Models
         #endregion
 
         #region Other Properties
-        [JsonIgnore]
-        public readonly Guid Guid => AudioEndpoint_GUID;
-        [JsonIgnore]
-        public readonly string RealId => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}";
+        //[JsonIgnore]
+        //public readonly string RealId => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}"; // Was used by previous API
         [JsonIgnore]
         public readonly Icon Icon => App.IconManager.GetIconFromIconPath(DeviceClass_IconPath);
         [JsonIgnore]
@@ -109,14 +109,19 @@ namespace WinAudioAssistant.Models
         /// <param name="device">CoreAudioDevice whose properties should be collected. The DataFlow and Endpoint GUID must match the existing info.</param>
         public void UpdateFromDevice(CoreAudioDevice device)
         {
+            if (device.DeviceType != DataFlow)
+                throw new ArgumentException("Device type mismatch", nameof(device));
+            if (device.Id != AudioEndpoint_GUID)
+                throw new ArgumentException("Device GUID mismatch", nameof(device));
             DeviceState = device.State;
             if (device.Properties[PropertyKeys.AudioEndpoint_FormFactor] is uint formFactor)
                 AudioEndpoint_FormFactor = (FormFactorType)formFactor;
             if (Guid.TryParse(device.Properties[PropertyKeys.AudioEndpoint_JackSubType] as string, out var jackSubType)) // CoreAudioApi outputs this GUID as a string for some reason
                 AudioEndpoint_JackSubType = jackSubType;
-            if (device.Properties[PropertyKeys.Device_ContainerId] is Guid containerId &&
-                containerId != new Guid(0x0, 0x0, 0x0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff))
+            if (device.Properties[PropertyKeys.Device_ContainerId] is Guid containerId) //&&
+                //containerId != new Guid(0x0, 0x0, 0x0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff)) 
                 // Devices that don't have a valid container (mainly virtual devices) have {00000000-0000-0000-FFFF-FFFFFFFFFFFF} instead of an empty GUID.
+                // Previously I treated this as a null GUID, but I'll allow it to be stored as-is for now.
                 Device_ContainerId = containerId;
             if (device.Properties[PropertyKeys.Device_DeviceDesc] is string deviceDesc)
                 Device_DeviceDesc = deviceDesc;
@@ -153,14 +158,14 @@ namespace WinAudioAssistant.Models
         /// </summary>
         private static class PropertyKeys
         {
-            internal static readonly PropertyKey AudioEndpoint_GUID = new(new Guid(0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e), 4);
-            internal static readonly PropertyKey AudioEndpoint_FormFactor = new(new Guid(0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e), 0);
-            internal static readonly PropertyKey AudioEndpoint_JackSubType = new(new Guid(0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e), 8);
-            internal static readonly PropertyKey Device_ContainerId = new(new Guid(0x8c7ed206, 0x3f8a, 0x4827, 0xb3, 0xab, 0xae, 0x9e, 0x1f, 0xae, 0xfc, 0x6c), 2);
-            internal static readonly PropertyKey Device_DeviceDesc = new(new Guid(0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0), 2);
-            internal static readonly PropertyKey DeviceClass_IconPath = new(new Guid(0x259abffc, 0x50a7, 0x47ce, 0xaf, 0x8, 0x68, 0xc9, 0xa7, 0xd7, 0x33, 0x66), 12);
-            internal static readonly PropertyKey DeviceInterface_FriendlyName = new(new Guid(0x026e516e, 0xb814, 0x414b, 0x83, 0xcd, 0x85, 0x6d, 0x6f, 0xef, 0x48, 0x22), 2);
-            internal static readonly PropertyKey HostDeviceDesc = new(new Guid(0xb3f8fa53, 0x0004, 0x438e, 0x90, 0x03, 0x51, 0xa4, 0x6e, 0x13, 0x9b, 0xfc), 6);
+            public static readonly PropertyKey AudioEndpoint_GUID = new(new Guid(0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e), 4);
+            public static readonly PropertyKey AudioEndpoint_FormFactor = new(new Guid(0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e), 0);
+            public static readonly PropertyKey AudioEndpoint_JackSubType = new(new Guid(0x1da5d803, 0xd492, 0x4edd, 0x8c, 0x23, 0xe0, 0xc0, 0xff, 0xee, 0x7f, 0x0e), 8);
+            public static readonly PropertyKey Device_ContainerId = new(new Guid(0x8c7ed206, 0x3f8a, 0x4827, 0xb3, 0xab, 0xae, 0x9e, 0x1f, 0xae, 0xfc, 0x6c), 2);
+            public static readonly PropertyKey Device_DeviceDesc = new(new Guid(0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0), 2);
+            public static readonly PropertyKey DeviceClass_IconPath = new(new Guid(0x259abffc, 0x50a7, 0x47ce, 0xaf, 0x8, 0x68, 0xc9, 0xa7, 0xd7, 0x33, 0x66), 12);
+            public static readonly PropertyKey DeviceInterface_FriendlyName = new(new Guid(0x026e516e, 0xb814, 0x414b, 0x83, 0xcd, 0x85, 0x6d, 0x6f, 0xef, 0x48, 0x22), 2);
+            public static readonly PropertyKey HostDeviceDesc = new(new Guid(0xb3f8fa53, 0x0004, 0x438e, 0x90, 0x03, 0x51, 0xa4, 0x6e, 0x13, 0x9b, 0xfc), 6);
         }
         #endregion
     }

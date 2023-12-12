@@ -52,7 +52,7 @@ namespace WinAudioAssistant.Views
             }
         }
 
-        public override void InitializeViewComponent() => InitializeComponent(); // Required to allow BaseView to call InitializeComponent()
+        protected override void InitializeViewComponent() => InitializeComponent(); // Required to allow BaseView to call InitializeComponent()
 
         /// <summary>
         /// When the window layout changes, re-enable SizeToContent.Height.

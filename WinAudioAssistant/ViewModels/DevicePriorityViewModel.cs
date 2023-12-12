@@ -9,18 +9,6 @@ using WinAudioAssistant.Views;
 
 namespace WinAudioAssistant.ViewModels
 {
-    #region Internal Types
-    /// <summary>
-    /// A struct to store the dataflow and whether the ListBox represents comms devices.
-    /// The View will assign one of these to the Tag property of each ListBox.
-    /// </summary>
-    public struct ListBoxTag
-    {
-        public DeviceType DataFlow;
-        public bool IsComms;
-    }
-    #endregion
-
     /// <summary>
     /// Viewmodel for the device priority configuration window.
     /// Contains a pair of ListBoxes for each managed device dataflow (input/output) and another pair for comms managed devices.
@@ -93,10 +81,10 @@ namespace WinAudioAssistant.ViewModels
         }
 
         // Properties containing the lists of managed devices, bound to each ListBox
-        public ReadOnlyObservableCollection<ManagedInputDevice> InputDevices => App.UserSettings.ManagedInputDevices;
-        public ReadOnlyObservableCollection<ManagedInputDevice> CommsInputDevices => App.UserSettings.ManagedCommsInputDevices;
-        public ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.ManagedOutputDevices;
-        public ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.ManagedCommsOutputDevices;
+        public static ReadOnlyObservableCollection<ManagedInputDevice> InputDevices => App.UserSettings.ManagedInputDevices;
+        public static ReadOnlyObservableCollection<ManagedInputDevice> CommsInputDevices => App.UserSettings.ManagedCommsInputDevices;
+        public static ReadOnlyObservableCollection<ManagedOutputDevice> OutputDevices => App.UserSettings.ManagedOutputDevices;
+        public static ReadOnlyObservableCollection<ManagedOutputDevice> CommsOutputDevices => App.UserSettings.ManagedCommsOutputDevices;
 
         public RelayCommand AddDeviceCommand { get; } // Bound to the command to add a new managed device to a ListBox
         public RelayCommand EditDeviceCommand { get; } // Bound to the command to edit an existing managed device in a ListBox
@@ -337,6 +325,18 @@ namespace WinAudioAssistant.ViewModels
         {
             Debug.Assert(App.DevicePriorityViewModel == this);
             App.DevicePriorityViewModel = null;
+        }
+        #endregion
+
+        #region Internal Types
+        /// <summary>
+        /// A struct to store the dataflow and whether the ListBox represents comms devices.
+        /// The View will assign one of these to the Tag property of each ListBox.
+        /// </summary>
+        public struct ListBoxTag
+        {
+            public DeviceType DataFlow;
+            public bool IsComms;
         }
         #endregion
     }

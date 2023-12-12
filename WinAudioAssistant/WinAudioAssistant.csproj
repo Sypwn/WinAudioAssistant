@@ -9,11 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Icons\Icon1.ico" />
-    <None Remove="Resources\Icons\MissingFile.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Page Remove="Resources\ImageResources.xaml" />
     <Page Remove="Resources\Images\*.xaml" />
   </ItemGroup>

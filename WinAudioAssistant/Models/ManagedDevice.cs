@@ -10,6 +10,18 @@ namespace WinAudioAssistant.Models
     /// </summary>
     public abstract class ManagedDevice
     {
+        #region Constructors
+        /// <summary>
+        /// Creates a new ManagedDevice with the given AudioEndpointInfo, while first verifying that the DataFlow matches.
+        /// </summary>
+        /// <param name="endpointInfo"></param>
+        public ManagedDevice(AudioEndpointInfo endpointInfo)
+        {
+            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedDevice created with mismatched DataFlow");
+            EndpointInfo = endpointInfo;
+        }
+        #endregion
+
         #region Properties
         public AudioEndpointInfo EndpointInfo { get; protected set; } // Contains the known properties of the intended endpoint, used to compare against active endpoints
         public string Name { get; set; } = ""; // User configured name for this managed device
@@ -29,7 +41,12 @@ namespace WinAudioAssistant.Models
         /// Updates the EndpointInfo property with the given AudioEndpointInfo, while first verifying that the DataFlow matches.
         /// </summary>
         /// <param name="endpointInfo">New AudioEndpointInfo for this managed device.</param>
-        public abstract void SetEndpoint(AudioEndpointInfo endpointInfo);
+        public void SetEndpoint(AudioEndpointInfo endpointInfo)
+        {
+            if (endpointInfo.DataFlow != DataFlow())
+                throw new ArgumentException("ManagedDevice endpoint set to mismatched DataFlow", nameof(endpointInfo));
+            EndpointInfo = endpointInfo;
+        }
 
         /// <summary>
         /// The device checks if it should be active, and if there is a matching endpoint in the cache.
@@ -107,43 +124,18 @@ namespace WinAudioAssistant.Models
     /// Managed device that is explicitly a capture/input device.
     /// Derived classes are used to better ensure that capture and playback devices are never internally mixed up.
     /// </summary>
-    public class ManagedInputDevice : ManagedDevice
+    public class ManagedInputDevice(AudioEndpointInfo endpointInfo) : ManagedDevice(endpointInfo)
     {
-        public ManagedInputDevice(AudioEndpointInfo endpointInfo)
-        {
-            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedInputDevice created with mismatched DataFlow");
-            EndpointInfo = endpointInfo;
-        }
-
-        /// <inheritdoc/>
         public override DeviceType DataFlow() => DeviceType.Capture;
-
-        public override void SetEndpoint(AudioEndpointInfo endpointInfo)
-        {
-            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedInputDevice endpoint set to mismatched DataFlow");
-            EndpointInfo = endpointInfo;
-        }
     }
 
     /// <summary>
     /// Managed device that is explicitly a playback/output device.
     /// Derived classes are used to better ensure that capture and playback devices are never internally mixed up.
     /// </summary>
-    public class ManagedOutputDevice : ManagedDevice
+    public class ManagedOutputDevice(AudioEndpointInfo endpointInfo) : ManagedDevice(endpointInfo)
     {
-        public ManagedOutputDevice(AudioEndpointInfo endpointInfo)
-        {
-            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedInputDevice created with mismatched DataFlow");
-            EndpointInfo = endpointInfo;
-        }
-
         /// <inheritdoc/>
         public override DeviceType DataFlow() => DeviceType.Playback;
-
-        public override void SetEndpoint(AudioEndpointInfo endpointInfo)
-        {
-            Trace.Assert(endpointInfo.DataFlow == DataFlow(), "ManagedInputDevice endpoint set to mismatched DataFlow");
-            EndpointInfo = endpointInfo;
-        }
     }
 }

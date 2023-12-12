@@ -166,18 +166,12 @@ namespace WinAudioAssistant.Models
             if (device is ManagedInputDevice inputDevice)
             {
                 var collection = isComms ? CommsInputDevices : InputDevices;
-                if (collection.Contains(inputDevice))
-                {
-                    collection.Remove(inputDevice);
-                }
+                collection.Remove(inputDevice);
             }
             else if (device is ManagedOutputDevice outputDevice)
             {
                 var collection = isComms ? CommsOutputDevices : OutputDevices;
-                if (collection.Contains(outputDevice))
-                {
-                    collection.Remove(outputDevice);
-                }
+                collection.Remove(outputDevice);
             }
             else
             {
@@ -262,7 +256,7 @@ namespace WinAudioAssistant.Models
                 {
                     Debug.WriteLine($"Matched {endpointInfo.DeviceInterface_FriendlyName}");
                     // Get the real device that matches the cached endpointInfo
-                    if (App.CoreAudioController.GetDevice(endpointInfo.Guid) is CoreAudioDevice device)
+                    if (App.CoreAudioController.GetDevice(endpointInfo.AudioEndpoint_GUID) is CoreAudioDevice device)
                     {
                         // Check if it's already default
                         if (isComms && device.IsDefaultCommunicationsDevice) return true;

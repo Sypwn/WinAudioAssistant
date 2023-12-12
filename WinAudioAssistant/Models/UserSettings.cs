@@ -10,6 +10,12 @@ namespace WinAudioAssistant.Models
     /// </summary>
     public class UserSettings
     {
+        #region Private Fields
+        string _settingsPath = string.Empty; // The path to the settings file, once located
+        [JsonIgnore]
+        private readonly ManagedDeviceManager _managedDevices = new(); // Private ManagedDeviceManager that handles the managed device lists
+        #endregion
+
         #region Public Properties
         /// <summary>
         /// When true, the comms devices are kept separate from the primary devices.
@@ -17,26 +23,23 @@ namespace WinAudioAssistant.Models
         /// </summary>
         public bool SeparateCommsPriority
         {
-            get { return ManagedDevices.SeparateCommsPriorityState; }
-            set { ManagedDevices.SeparateCommsPriorityState = value; }
+            get { return _managedDevices.SeparateCommsPriorityState; }
+            set { _managedDevices.SeparateCommsPriorityState = value; }
         }
         public double PriorityConfigurationWindowWidth { get; set; } = 600; // Saves the width of the priority configuration window
         public double PriorityConfigurationWindowHeight { get; set; } = 300; // Saves the height of the priority configuration window
         #endregion
 
         #region ManagedDeviceManager Accessors and Methods
-        [JsonIgnore]
-        private ManagedDeviceManager ManagedDevices { get; } = new(); // Private ManagedDeviceManager that handles the managed device lists
-
         // These exposed accessors allow the UI to read the managed device lists
         [JsonIgnore]
-        public ReadOnlyObservableCollection<ManagedInputDevice> ManagedInputDevices => ManagedDevices.ReadOnlyInputDevices;
+        public ReadOnlyObservableCollection<ManagedInputDevice> ManagedInputDevices => _managedDevices.ReadOnlyInputDevices;
         [JsonIgnore]
-        public ReadOnlyObservableCollection<ManagedOutputDevice> ManagedOutputDevices => ManagedDevices.ReadOnlyOutputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> ManagedOutputDevices => _managedDevices.ReadOnlyOutputDevices;
         [JsonIgnore]
-        public ReadOnlyObservableCollection<ManagedInputDevice> ManagedCommsInputDevices => ManagedDevices.ReadOnlyCommsInputDevices;
+        public ReadOnlyObservableCollection<ManagedInputDevice> ManagedCommsInputDevices => _managedDevices.ReadOnlyCommsInputDevices;
         [JsonIgnore]
-        public ReadOnlyObservableCollection<ManagedOutputDevice> ManagedCommsOutputDevices => ManagedDevices.ReadOnlyCommsOutputDevices;
+        public ReadOnlyObservableCollection<ManagedOutputDevice> ManagedCommsOutputDevices => _managedDevices.ReadOnlyCommsOutputDevices;
 
         // These lists are used exclusively for serialization and deserialization of the managed device lists
         [JsonProperty(PropertyName = "ManagedInputDevices")]
@@ -51,19 +54,19 @@ namespace WinAudioAssistant.Models
         // These exposed methods allow the UI to add, remove, and check for the existence of managed devices
 
         /// <inheritdoc cref="ManagedDeviceManager.AddDevice(ManagedDevice, bool)"/>
-        public void AddManagedDevice(ManagedDevice device, bool isComms) => ManagedDevices.AddDevice(device, isComms);
+        public void AddManagedDevice(ManagedDevice device, bool isComms) => _managedDevices.AddDevice(device, isComms);
 
         /// <inheritdoc cref="ManagedDeviceManager.AddDeviceAt(ManagedDevice, bool, int)"/>
-        public void AddManagedDeviceAt(ManagedDevice device, bool isComms, int index) => ManagedDevices.AddDeviceAt(device, isComms, index);
+        public void AddManagedDeviceAt(ManagedDevice device, bool isComms, int index) => _managedDevices.AddDeviceAt(device, isComms, index);
 
         /// <inheritdoc cref="ManagedDeviceManager.RemoveDevice(ManagedDevice, bool)"/>
-        public void RemoveManagedDevice(ManagedDevice device, bool isComms) => ManagedDevices.RemoveDevice(device, isComms);
+        public void RemoveManagedDevice(ManagedDevice device, bool isComms) => _managedDevices.RemoveDevice(device, isComms);
 
         /// <inheritdoc cref="ManagedDeviceManager.HasDevice(ManagedDevice, bool)"/>
-        public bool HasManagedDevice(ManagedDevice device, bool isComms) => ManagedDevices.HasDevice(device, isComms);
+        public bool HasManagedDevice(ManagedDevice device, bool isComms) => _managedDevices.HasDevice(device, isComms);
 
         /// <inheritdoc cref="ManagedDeviceManager.UpdateDefaultDevices()"/>
-        public void UpdateDefaultDevices() => ManagedDevices.UpdateDefaultDevices(); // Should only be called by SystemEventsHandler
+        public void UpdateDefaultDevices() => _managedDevices.UpdateDefaultDevices(); // Should only be called by SystemEventsHandler
         #endregion
 
         #region Public Serialization Methods
@@ -72,11 +75,12 @@ namespace WinAudioAssistant.Models
         /// </summary>
         public void Startup()
         {
-            // TODO: Locate the appropriate path to the settings file.
-            if (!LoadFromFile("settings.json"))
-            {
-                SeparateCommsPriority = false;
-            }
+            _settingsPath = "settings.json"; // TODO: Locate the appropriate path to the settings file.
+            if (File.Exists(_settingsPath) && Deserialize())
+                return;
+            
+            // Default setting overrides
+            SeparateCommsPriority = false; // This must default to true during construction
         }
 
         /// <summary>
@@ -85,7 +89,7 @@ namespace WinAudioAssistant.Models
         /// <returns>True if the settings were successfully loaded.</returns>
         public bool Load()
         {
-            if (LoadFromFile("settings.json"))
+            if (Deserialize())
             {
                 SystemEventsHandler.DispatchUpdateDefaultDevices();
                 return true;
@@ -99,17 +103,16 @@ namespace WinAudioAssistant.Models
         /// <returns>True if the settings were successfully saved.</returns>
         public bool Save()
         {
-            return SaveToFile("settings.json");
+            return Serialize();
         }
         #endregion
 
         #region Private Serialization Methods
         /// <summary>
-        /// Serializes the settings to a file.
+        /// Serializes the settings to the settings file.
         /// </summary>
-        /// <param name="filename">Path to settings file.</param>
         /// <returns>True if successful.</returns>
-        private bool SaveToFile(string filename)
+        private bool Serialize()
         {
             // First, populate the temporary serialization lists with the current managed device lists
             _inputDevicesForSerialization = ManagedInputDevices.ToList();
@@ -119,51 +122,54 @@ namespace WinAudioAssistant.Models
 
             try
             {
-                // Then serialize the settings to a file
+                // Then serialize the settings to the file
                 string json = JsonConvert.SerializeObject(this, Formatting.Indented);
-                File.WriteAllText(filename, json);
+                File.WriteAllText(_settingsPath, json);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 return false;
             }
-            return true;
-        }
-
-        /// <summary>
-        /// Deserializes the settings from a file.
-        /// </summary>
-        /// <param name="filename">Path to settings file.</param>
-        /// <returns>True if successful.</returns>
-        private bool LoadFromFile(string filename)
-        {
-            if (File.Exists(filename))
+            finally
             {
-                try
-                {
-                    // First, deserialize the settings from a file
-                    string json = File.ReadAllText(filename);
-                    JsonConvert.PopulateObject(json, this);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    return false;
-                }
-
-                // Then repopulate the managed device lists from the temporary serialization lists
-                ManagedDevices.RepopulateDevices(inputDevices: _inputDevicesForSerialization, outputDevices: _outputDevicesForSerialization,
-                                                 commsInputDevices: _commsInputDevicesForSerialization, commsOutputDevices: _commsOutputDevicesForSerialization);
-
                 // Finally, clear the temporary serialization lists
                 _inputDevicesForSerialization = null;
                 _outputDevicesForSerialization = null;
                 _commsInputDevicesForSerialization = null;
                 _commsOutputDevicesForSerialization = null;
-                return true;
             }
-            return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Deserializes the settings from the settings file.
+        /// </summary>
+        /// <returns>True if successful.</returns>
+        private bool Deserialize()
+        {
+            try
+            {
+                // First, deserialize the settings from the file
+                string json = File.ReadAllText(_settingsPath);
+                JsonConvert.PopulateObject(json, this);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+
+            // Then repopulate the managed device lists from the temporary serialization lists
+            _managedDevices.RepopulateDevices(inputDevices: _inputDevicesForSerialization, outputDevices: _outputDevicesForSerialization,
+                                             commsInputDevices: _commsInputDevicesForSerialization, commsOutputDevices: _commsOutputDevicesForSerialization);
+
+            // Finally, clear the temporary serialization lists
+            _inputDevicesForSerialization = null;
+            _outputDevicesForSerialization = null;
+            _commsInputDevicesForSerialization = null;
+            _commsOutputDevicesForSerialization = null;
+            return true;
         }
         #endregion
     }

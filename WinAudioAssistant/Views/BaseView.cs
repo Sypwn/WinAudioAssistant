@@ -26,7 +26,7 @@ namespace WinAudioAssistant.Views
             }
         }
 
-        public abstract void InitializeViewComponent(); // The dervived class must direct this to InitializeComponent()
+        protected abstract void InitializeViewComponent(); // The dervived class must direct this to InitializeComponent()
 
         /// <summary>
         /// Event handler for the window closing event.
