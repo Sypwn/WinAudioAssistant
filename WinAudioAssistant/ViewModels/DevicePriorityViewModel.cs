@@ -6,6 +6,7 @@ using GongSolutions.Wpf.DragDrop;
 using AudioSwitcher.AudioApi;
 using WinAudioAssistant.Models;
 using WinAudioAssistant.Views;
+using System.Windows.Threading;
 
 namespace WinAudioAssistant.ViewModels
 {
@@ -221,7 +222,7 @@ namespace WinAudioAssistant.ViewModels
                 if (editDeviceView.DataContext is EditDeviceViewModel editDeviceViewModel)
                 {
                     editDeviceViewModel.InitializeEdit(device, tag.IsComms);
-                    editDeviceView.Show();
+                    App.Current.Dispatcher.BeginInvoke(editDeviceView.Show, DispatcherPriority.ContextIdle); // Dispatching this fixes issue with transferring focus on double-click.
                 }
                 else
                 {
