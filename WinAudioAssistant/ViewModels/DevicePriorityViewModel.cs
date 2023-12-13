@@ -127,6 +127,7 @@ namespace WinAudioAssistant.ViewModels
             if (EditDeviceViewModels.Count > 0)
             {
                 EditDeviceViewModels[0].FocusViewAction();
+                EditDeviceViewModels[0].FlashViewAction();
                 return false;
             }
             if (PendingChanges)

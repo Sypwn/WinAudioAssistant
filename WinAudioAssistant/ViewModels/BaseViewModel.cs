@@ -22,8 +22,9 @@ namespace WinAudioAssistant.ViewModels
         #endregion
 
         #region Properties
-        public Action CloseViewAction { get; set; } = () => { }; // References method to close the view. Set in BaseView.
-        public Action FocusViewAction { get; set; } = () => { }; // References method to focus the view. Set in BaseView.
+        public Action CloseViewAction { get; set; } = () => { }; // References method to close the window. Set in BaseView.
+        public Action FocusViewAction { get; set; } = () => { }; // References method to focus the window. Set in BaseView.
+        public Action FlashViewAction { get; set; } = () => { }; // References method to flash the window. Set in BaseView.
         public RelayCommand OkCommand { get; } // Command for the OK button.
         public RelayCommand CancelCommand { get; } // Command for the Cancel button.
         public RelayCommand ApplyCommand { get; } // Command for the Apply button.
