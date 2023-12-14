@@ -143,7 +143,43 @@
         </Border>
         
         <!-- Row 3: Activation conditions -->
-        
+        <Border Grid.Row="3" Margin="0,5,0,0" BorderBrush="Gray" BorderThickness="1" CornerRadius="3">
+            <StackPanel>
+                <Grid Margin="5" ToolTip="Optionally create a set of conditions that must be met for this managed device to be active. All listed conditions must be met.">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Margin="0,0,5,0"
+                               Text="Activation conditions:" VerticalAlignment="Center"/>
+                    <Button Grid.Column="2" Margin="5,0,0,0" Command="{Binding AddApplicationConditionCommand}" ToolTip="Add a condition that a specific application or process must be running.">
+                        <Image Source="{Binding ApplicationConditionIcon}"/>
+                    </Button>
+                    <Button Grid.Column="3" Margin="5,0,0,0" Command="{Binding RemoveActivationConditionCommand}" ToolTip="Remove the currently selected activation condition.">
+                        <StaticResource ResourceKey="Remove_Image"/>
+                    </Button>
+                </Grid>
+                <DataGrid AutoGenerateColumns="False" Height="100" IsReadOnly="True"
+                          ItemsSource="{Binding ActivationConditions}" SelectedItem="{Binding SelectedActivationCondition}">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Type">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding TypeIcon}" Width="16" Height="16"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Path" Binding="{Binding Path}"/>
+                    </DataGrid.Columns>
+                    <DataGrid.InputBindings>
+                        <KeyBinding Key="Delete" Command="{Binding RemoveActivationConditionCommand}"/>
+                    </DataGrid.InputBindings>
+                </DataGrid>
+            </StackPanel>
+        </Border>
+
         <!-- Buttons -->
         <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
             <Button Content="OK" Width="75" Margin="10,0,0,0" Command="{Binding OkCommand}" IsDefault="True" ToolTip="Saves changes and closes the dialog."/>

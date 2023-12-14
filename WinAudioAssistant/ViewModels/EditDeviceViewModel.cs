@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using AudioSwitcher.AudioApi;
 using WinAudioAssistant.Models;
 
@@ -23,6 +25,9 @@ namespace WinAudioAssistant.ViewModels
             Debug.Assert(App.DevicePriorityViewModel is not null);
             Debug.Assert(App.DevicePriorityViewModel?.EditDeviceViewModels.Contains(this) == false);
             App.DevicePriorityViewModel?.EditDeviceViewModels.Add(this);
+
+            AddApplicationConditionCommand = new RelayCommand(AddApplicationCondition);
+            RemoveActivationConditionCommand = new RelayCommand(RemoveActivationCondition, CanRemoveActivationCondition);
         }
 
         /// <summary>
@@ -152,6 +157,22 @@ namespace WinAudioAssistant.ViewModels
         }
         public EnumFlags<ManagedDevice.IdentificationFlags> ManagedDeviceCustomIdentificationFlags { get => _managedDeviceCustomIdentificationFlags; } // Bound to multiple checkboxes, each of which toggles a flag in the enum.
         public bool ShowCustomIdentificationFlags => _managedDeviceIentificationMethod == ManagedDevice.IdentificationMethods.Custom; // Bound to the visibility of the custom identification flags checkboxes.
+        public static BitmapSource ApplicationConditionIcon => App.IconManager.GetBitmapFromIconPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "shell32.dll,-153"), 16);
+        public static BitmapSource HardwareConditionIcon => App.IconManager.GetBitmapFromIconPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "mmres.dll,-3018"), 16);
+        public RelayCommand AddApplicationConditionCommand {  get; }
+        public RelayCommand RemoveActivationConditionCommand { get; }
+        public ObservableCollection<ActivationConditionViewModel> ActivationConditions { get; } = new();
+        private ActivationConditionViewModel? _selectedActivationCondition;
+        public ActivationConditionViewModel? SelectedActivationCondition
+        {
+            get => _selectedActivationCondition;
+            set
+            {
+                _selectedActivationCondition = value;
+                OnPropertyChanged(nameof(SelectedActivationCondition));
+                RemoveActivationConditionCommand.RaiseCanExecuteChanged();
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -281,6 +302,28 @@ namespace WinAudioAssistant.ViewModels
             // But we don't want this to affect the state of PendingChanges
             _pendingChanges = previouslyPendingChanges;
         }
+
+        private void AddApplicationCondition(object? parameter)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Applications (*.exe)|*.exe|All Files (*.*)|*.*",
+                Title = "Select an application to add as a condition"
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                var condition = new ActivationConditionViewModel(new ManagedDevice.ActivationCondition(ManagedDevice.ActivationConditionType.Application, dialog.FileName));
+                ActivationConditions.Add(condition);
+            }
+        }
+
+        private bool CanRemoveActivationCondition(object? parameter) => SelectedActivationCondition != null;
+
+        private void RemoveActivationCondition(object? parameter)
+        {
+            if (SelectedActivationCondition != null)
+                ActivationConditions.Remove(SelectedActivationCondition);
+        }
         #endregion
 
         #region Destructor
@@ -315,6 +358,25 @@ namespace WinAudioAssistant.ViewModels
             public string Name { get; set; }
             public ManagedDevice.IdentificationMethods Value { get; set; }
             public string ToolTip { get; set; }
+        }
+
+        public class ActivationConditionViewModel
+        {
+            public ActivationConditionViewModel (ManagedDevice.ActivationCondition condition) => Condition = condition;
+            public ManagedDevice.ActivationCondition Condition { get; }
+            public BitmapSource TypeIcon => Condition.Type switch
+            {
+                ManagedDevice.ActivationConditionType.Application => ApplicationConditionIcon,
+                ManagedDevice.ActivationConditionType.Hardware => HardwareConditionIcon,
+                _ => throw new NotImplementedException()
+            };
+            public string Path => Condition.Type switch
+            {
+                ManagedDevice.ActivationConditionType.Application => Condition.ApplicationPath!,
+                ManagedDevice.ActivationConditionType.Hardware => string.Empty,
+                _ => throw new NotImplementedException()
+            };
+            
         }
         #endregion
     }

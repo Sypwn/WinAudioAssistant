@@ -98,6 +98,21 @@ namespace WinAudioAssistant.Models
                 _activeDispatchAction = DispatchAction.UpdateCachedEndpoints;
             }
         }
+
+        public static void RegisterCondition(ManagedDevice.ActivationCondition condition)
+        {
+            switch (condition.Type)
+            {
+                case ManagedDevice.ActivationConditionType.Application:
+                    // TODO
+                    break;
+                case ManagedDevice.ActivationConditionType.Hardware:
+                    // TODO
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(condition.Type), condition.Type, null);
+            }
+        }
         #endregion
 
         #region Private Methods
