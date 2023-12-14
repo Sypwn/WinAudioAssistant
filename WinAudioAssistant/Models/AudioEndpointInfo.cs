@@ -76,12 +76,8 @@ namespace WinAudioAssistant.Models
         #endregion
 
         #region Other Properties
-        //[JsonIgnore]
-        //public readonly string RealId => (DataFlow == DeviceType.Playback ? "{0.0.0.00000000}.{" : "{0.0.1.00000000}.{") + AudioEndpoint_GUID.ToString() + "}"; // Was used by previous API
         [JsonIgnore]
-        public readonly Icon Icon => App.IconManager.GetIconFromIconPath(DeviceClass_IconPath);
-        [JsonIgnore]
-        public readonly BitmapSource IconBitmap => App.IconManager.GetBitmapFromIconPath(DeviceClass_IconPath);
+        public readonly BitmapSource IconBitmap_32px => App.IconManager.GetBitmapFromIconPath(DeviceClass_IconPath, 32); // Referenced by EditDeviceView
         #endregion
 
         #region Public Methods
