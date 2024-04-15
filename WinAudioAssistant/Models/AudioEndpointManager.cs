@@ -5,7 +5,7 @@ using AudioSwitcher.AudioApi;
 namespace WinAudioAssistant.Models
 {
     /// <summary>
-    /// Maintains a cache of active audio endpoints in the system.
+    /// Maintains a cache of audio endpoints (AudioEndpointInfo) that are registered in the system, which inclues their state.
     /// </summary>
     public class AudioEndpointManager
     {
@@ -13,10 +13,10 @@ namespace WinAudioAssistant.Models
         public ReadOnlyObservableCollection<AudioEndpointInfo> CachedEndpoints => new(_cachedEndpoints); // Public read-only list of cached endpoints
 
         /// <summary>
-        /// Updates the cache of active audio endpoints in the system.
+        /// Refreshes the cache and updates the states of all audio endpoints.
         /// Should only be called by SystemEventsHandler.
         /// </summary>
-        public void UpdateCachedEndpoints()
+        public void RefreshCachedEndpoints()
         {
             _cachedEndpoints.Clear();
             foreach (var device in App.CoreAudioController.GetDevices(DeviceState.All))

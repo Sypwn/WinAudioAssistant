@@ -23,10 +23,11 @@ namespace WinAudioAssistant.Models
         /// Raised after the system default audio devices are updated.
         /// </summary>
         public static event EventHandler? UpdatedDefaultDevicesEvent;
+
         /// <summary>
         /// Raised after the cached audio endpoints are updated.
         /// </summary>
-        public static event EventHandler? UpdatedCachedEndpointsEvent;
+        public static event EventHandler? RefreshedCachedEndpointsEvent;
         #endregion
 
         #region Public Methods
@@ -41,9 +42,9 @@ namespace WinAudioAssistant.Models
                 return;
             lock (_activeDispatchLock)
             {
-                // Startiing with a UpdateCachedEndpointsAction dispatch ensures these fields aren't null during Dispatch...() calls, which saves a null check
-                _activeDispatchOperation = App.Current.Dispatcher.BeginInvoke(UpdateCachedEndpointsAction);
-                _activeDispatchAction = DispatchAction.UpdateCachedEndpoints;
+                // Starting with a UpdateCachedEndpointsAction dispatch ensures these fields aren't null during Dispatch...() calls, which saves a null check
+                _activeDispatchOperation = App.Current.Dispatcher.BeginInvoke(RefreshCachedEndpointsAction);
+                _activeDispatchAction = DispatchAction.RefreshCachedEndpoints;
                 _ready = true;
             }
 
@@ -75,9 +76,9 @@ namespace WinAudioAssistant.Models
         }
 
         /// <summary>
-        /// Queues an action to update the cached endpoints. This will be followed by action to update the default devices.
+        /// Queues an action to refresh the cached endpoints. This will be followed by action to update the default devices.
         /// </summary>
-        public static void DispatchUpdateCachedEndpoints()
+        public static void DispatchRefreshCachedEndpoints()
         {
             lock (_activeDispatchLock)
             {
@@ -88,14 +89,14 @@ namespace WinAudioAssistant.Models
                 // The ready check is effectively a null check
                 if (_activeDispatchOperation!.Status == DispatcherOperationStatus.Pending)
                 {
-                    if (_activeDispatchAction == DispatchAction.UpdateCachedEndpoints)
+                    if (_activeDispatchAction == DispatchAction.RefreshCachedEndpoints)
                         return; // Already pending, and it's the same action, so we don't need to do anything
                     else
                         _activeDispatchOperation.Abort(); // Already pending, but it's UpdateDefaultDevices, so we're going to replace it
                 }
 
-                _activeDispatchOperation = App.Current.Dispatcher.BeginInvoke(UpdateCachedEndpointsAction);
-                _activeDispatchAction = DispatchAction.UpdateCachedEndpoints;
+                _activeDispatchOperation = App.Current.Dispatcher.BeginInvoke(RefreshCachedEndpointsAction);
+                _activeDispatchAction = DispatchAction.RefreshCachedEndpoints;
             }
         }
 
@@ -126,13 +127,13 @@ namespace WinAudioAssistant.Models
         }
 
         /// <summary>
-        /// This method is called by the dispatcher on the UI thread to update the cached audio endpoints.
+        /// This method is called by the dispatcher on the UI thread to refresh the cached audio endpoints.
         /// </summary>
-        private static void UpdateCachedEndpointsAction()
+        private static void RefreshCachedEndpointsAction()
         {
-            App.AudioEndpointManager.UpdateCachedEndpoints();
+            App.AudioEndpointManager.RefreshCachedEndpoints();
             DispatchUpdateDefaultDevices();
-            UpdatedCachedEndpointsEvent?.Invoke(null, EventArgs.Empty);
+            RefreshedCachedEndpointsEvent?.Invoke(null, EventArgs.Empty);
         }
 
         /// <summary>
@@ -156,7 +157,7 @@ namespace WinAudioAssistant.Models
                 case DeviceChangedType.DeviceAdded:
                 case DeviceChangedType.DeviceRemoved:
                 case DeviceChangedType.StateChanged:
-                    DispatchUpdateCachedEndpoints();
+                    DispatchRefreshCachedEndpoints();
                     return;
                 case DeviceChangedType.DefaultChanged:
                     DispatchUpdateDefaultDevices();
@@ -188,7 +189,7 @@ namespace WinAudioAssistant.Models
         private enum DispatchAction
         {
             UpdateDefaultDevices,
-            UpdateCachedEndpoints,
+            RefreshCachedEndpoints,
         }
         #endregion
     }

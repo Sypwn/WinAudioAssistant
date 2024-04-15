@@ -133,7 +133,7 @@ namespace WinAudioAssistant.ViewModels
             }
             if (PendingChanges)
             {
-                MessageBoxResult messageBoxResult = MessageBox.Show("You have unsaved changes. Are you sure you want to close this window?", "Unsaved Changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                MessageBoxResult messageBoxResult = MessageBox.Show("You have unsaved changes. Are you sure you want to close this window without saving?", "Unsaved Changes", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (messageBoxResult == MessageBoxResult.Yes)
                     PendingChanges = false;
                 else

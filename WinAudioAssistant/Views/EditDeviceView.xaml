@@ -127,7 +127,7 @@
                 <WrapPanel Grid.Row="1" Grid.Column="0" Margin="5,0,5,0"
                            Visibility="{Binding ShowCustomIdentificationFlags, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <CheckBox Content="Host device name" Margin="0,0,5,5" IsChecked="{Binding ManagedDeviceCustomIdentificationFlags[HostDeviceDesc]}"
-                              ToolTip="b3f8fa53-0004-438e-9003-51a46e139bfc[6]&#x0a;(Property name unknown)&#x0a;&#x0a;Appears to be the name of the host device. Usually same as DeviceInterface_FriendlyName, but won't add numbers if there are duplicates."/>
+                              ToolTip="b3f8fa53-0004-438e-9003-51a46e139bfc[6]&#x0a;(Property name unknown)&#x0a;&#x0a;Appears to be the name of the host device. Often same as DeviceInterface_FriendlyName, but without the extra numbers, and thus more consistent."/>
                     <CheckBox Content="Jack type" Margin="0,0,5,5" IsChecked="{Binding ManagedDeviceCustomIdentificationFlags[AudioEndpoint_FormFactor]}"
                               ToolTip="AudioEndpoint_FormFactor&#x0a;&#x0a;Speakers, headphones, headset, SPDIF, etc."/>
                     <CheckBox Content="Jack sub type" Margin="0,0,5,5" IsChecked="{Binding ManagedDeviceCustomIdentificationFlags[AudioEndpoint_JackSubType]}"
@@ -135,7 +135,7 @@
                     <CheckBox Content="Endpoint name" Margin="0,0,5,5" IsChecked="{Binding ManagedDeviceCustomIdentificationFlags[Device_DeviceDesc]}"
                               ToolTip="Device_DeviceDesc&#x0a;&#x0a;The endpoint's name, which can be changed in Windows Settings."/>
                     <CheckBox Content="Interface name" Margin="0,0,5,5" IsChecked="{Binding ManagedDeviceCustomIdentificationFlags[DeviceInterface_FriendlyName]}"
-                              ToolTip="DeviceInterface_FriendlyName&#x0a;&#x0a;The device description specified by the driver."/>
+                              ToolTip="DeviceInterface_FriendlyName&#x0a;&#x0a;The device description specified by the driver. It may have numbers added to the end if there are multiple endpoints with the same DeviceInterface_FriendlyName."/>
                     <CheckBox Content="ContainerID" Margin="0,0,5,5" IsChecked="{Binding ManagedDeviceCustomIdentificationFlags[Device_ContainerId]}"
                               ToolTip="Device_ContainerId&#x0a;&#x0a;Possibly points to parent device? Not populated for virtual devices."/>
                 </WrapPanel>

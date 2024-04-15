@@ -24,15 +24,15 @@ namespace WinAudioAssistant.Views
                 {
                     Name = "Strict",
                     Value = ManagedDevice.IdentificationMethods.Strict,
-                    ToolTip = "Identify this endpoint by its unique GUID. This ensures there are no identification conflicts with other similar devices, " +
+                    ToolTip = "Identify this endpoint by its unique GUID.\n\nThis ensures there are no identification conflicts with other similar devices, " +
                               "however its GUID may change when changing ports or sockets, updating or reinstalling drivers, etc."
                 });
                 viewModel.ManagedDeviceIdentificationMethods.Add(new EditDeviceViewModel.DeviceIdentificationMethodOption
                 {
                     Name = "Loose",
                     Value = ManagedDevice.IdentificationMethods.Loose,
-                    ToolTip = "Identify this endpoint based on its hardware description and jack type. This allows the endpoint to continue to be detected across " +
-                              "multiple USB ports, for example, but will create an identification conflict if multiple similar devices are connected."
+                    ToolTip = "Identify this endpoint based on its hardware description and jack type.\n\nThis allows the endpoint to continue to be detected across " +
+                              "multiple USB ports, for example, but will cause an identification conflict if multiple similar devices are connected."
                 });
                 viewModel.ManagedDeviceIdentificationMethods.Add(new EditDeviceViewModel.DeviceIdentificationMethodOption
                 {

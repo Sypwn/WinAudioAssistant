@@ -80,9 +80,9 @@ namespace WinAudioAssistant.ViewModels
             // When any IdentificationFlags checkbox is toggled, mark the viewmodel as having pending changes
             ManagedDeviceCustomIdentificationFlags.PropertyChanged += (_, _) => _pendingChanges = true;
 
-            // When any endpoint list filter checkbox is toggled, or when the list of system endpoints is updated, update the filtered list of endpoints
+            // When any endpoint list filter checkbox is toggled, or when the list of system endpoints is refreshed, update the filtered list of endpoints
             EndpointListFilter.PropertyChanged += (_, _) => UpdateFilteredEndpoints();
-            SystemEventsHandler.UpdatedCachedEndpointsEvent += (_, _) => UpdateFilteredEndpoints();
+            SystemEventsHandler.RefreshedCachedEndpointsEvent += (_, _) => UpdateFilteredEndpoints();
 
             _initialized = true;
             UpdateFilteredEndpoints();
@@ -344,7 +344,7 @@ namespace WinAudioAssistant.ViewModels
 
             EndpointListFilter.PropertyChanged -= (_, _) => UpdateFilteredEndpoints();
             ManagedDeviceCustomIdentificationFlags.PropertyChanged -= (_, _) => _pendingChanges = true;
-            SystemEventsHandler.UpdatedCachedEndpointsEvent -= (_, _) => UpdateFilteredEndpoints();
+            SystemEventsHandler.RefreshedCachedEndpointsEvent -= (_, _) => UpdateFilteredEndpoints();
         }
         #endregion
 

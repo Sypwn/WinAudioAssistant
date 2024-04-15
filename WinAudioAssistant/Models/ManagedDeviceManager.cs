@@ -237,7 +237,7 @@ namespace WinAudioAssistant.Models
             error |= !UpdateDefaultDevice(CommsOutputDevices.ToList<ManagedDevice>(), true);
 
             if (error)
-                SystemEventsHandler.DispatchUpdateCachedEndpoints();
+                SystemEventsHandler.DispatchRefreshCachedEndpoints();
         }
         #endregion
 
